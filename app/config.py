@@ -97,6 +97,7 @@ class Config:
         'bank_name': 'Techcombank',
         'account_number': '1234567890',
         'account_name': 'NGUYEN VAN A',
+        'branch': 'Ho Chi Minh City',
         'momo_phone': '0901234567',
         'momo_name': 'NGUYEN VAN A'
     }

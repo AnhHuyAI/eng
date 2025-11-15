@@ -2,6 +2,7 @@
 
 from flask import Blueprint, render_template, jsonify
 from flask_login import login_required, current_user
+from app import db
 from app.models.user import Transaction
 from app.models.writing import WritingSubmission
 from app.models.speaking import SpeakingSubmission

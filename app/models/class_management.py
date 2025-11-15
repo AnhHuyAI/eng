@@ -29,6 +29,8 @@ class TeacherClass(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
+    teacher = db.relationship('User', backref='teacher_classes', foreign_keys=[teacher_id])
+
     class_students = db.relationship('ClassStudent', backref='teacher_class', lazy='dynamic',
                                     cascade='all, delete-orphan')
 
@@ -46,6 +48,13 @@ class TeacherClass(db.Model):
     def student_count(self):
         """Get number of active students in class"""
         return self.class_students.filter_by(status='active').count()
+
+    @property
+    def students(self):
+        """Get query for active student User objects in this class"""
+        from app.models.user import User
+        student_ids = [cs.student_id for cs in self.class_students.filter_by(status='active').all()]
+        return User.query.filter(User.id.in_(student_ids)) if student_ids else User.query.filter_by(id=None)
 
     @property
     def assignment_count(self):

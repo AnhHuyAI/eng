@@ -105,5 +105,33 @@ class Assignment(db.Model):
             return False
         return datetime.utcnow() > self.due_date
 
+    def get_student_attempts(self, student_id):
+        """Get all attempts by a student for this assignment"""
+        return self.get_submissions_for_student(student_id)
+
+    def get_latest_attempt(self, student_id):
+        """Get most recent attempt by a student"""
+        attempts = self.get_student_attempts(student_id)
+        return attempts[0] if attempts else None
+
+    def is_completed_by(self, student_id):
+        """Check if student has completed this assignment"""
+        attempts = self.get_student_attempts(student_id)
+        return len(attempts) > 0
+
+    def get_practice_url(self):
+        """Get URL for practicing/starting this assignment"""
+        from flask import url_for
+
+        if self.content_type in ['writing_task1', 'writing_task2']:
+            return url_for('writing.practice', task_id=self.content_id)
+        elif self.content_type == 'reading':
+            return url_for('reading.practice', passage_id=self.content_id)
+        elif self.content_type == 'listening':
+            return url_for('listening.practice', section_id=self.content_id)
+        elif self.content_type == 'speaking':
+            return url_for('speaking.practice', topic_id=self.content_id)
+        return '#'
+
     def __repr__(self):
         return f'<Assignment {self.title} ({self.content_type})>'

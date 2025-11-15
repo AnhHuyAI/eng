@@ -251,4 +251,33 @@ def credits():
     return render_template('teacher/credits.html',
                           balance=balance,
                           transactions=transactions,
-                          packages=packages)
+                          packages=packages,
+                          BANK_INFO=current_app.config['BANK_INFO'])
+
+
+@bp.route('/submissions/<int:submission_id>/comment', methods=['POST'])
+@login_required
+@teacher_required
+def add_comment(submission_id):
+    """Add teacher comment to a submission"""
+    submission = WritingSubmission.query.get_or_404(submission_id)
+
+    # Verify submission is from teacher's student
+    if submission.user.teacher_id != current_user.id:
+        flash('Access denied', 'danger')
+        return redirect(url_for('teacher.submissions'))
+
+    teacher_comment = request.form.get('teacher_comment')
+    teacher_score = request.form.get('teacher_score')
+
+    submission.teacher_comment = teacher_comment
+    if teacher_score:
+        try:
+            submission.teacher_score = float(teacher_score)
+        except ValueError:
+            pass
+
+    db.session.commit()
+
+    flash('Comment saved successfully!', 'success')
+    return redirect(url_for('teacher.submissions'))

@@ -1,6 +1,6 @@
 # app/__init__.py
 
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -27,14 +27,17 @@ def create_app(config_name='default'):
     login_manager.login_message_category = 'warning'
     
     # Import models (để Migrate detect được)
-    from app.models import user, vocabulary, listening, reading, speaking, writing, payment
-    
+    from app.models import (
+        user, vocabulary, listening, reading, speaking, writing, payment,
+        class_management, assignment, gemini_usage
+    )
+
     # Register blueprints
     from app.routes import auth, user as user_routes, vocabulary as vocab_routes
     from app.routes import listening as listen_routes, reading as read_routes
     from app.routes import speaking as speak_routes, writing as write_routes
-    from app.routes import payment as pay_routes, admin, teacher
-    
+    from app.routes import payment as pay_routes, admin, teacher, student
+
     app.register_blueprint(auth.bp)
     app.register_blueprint(user_routes.bp)
     app.register_blueprint(vocab_routes.bp)
@@ -45,6 +48,7 @@ def create_app(config_name='default'):
     app.register_blueprint(pay_routes.bp)
     app.register_blueprint(admin.bp)
     app.register_blueprint(teacher.bp)
+    app.register_blueprint(student.bp)
     
     # Error handlers
     @app.errorhandler(404)
