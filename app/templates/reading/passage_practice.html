@@ -1,0 +1,189 @@
+<!-- app/templates/reading/passage_practice.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}{{ passage.title }} - IELTS AI Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .passage-text {
+        line-height: 2;
+        font-size: 1.05rem;
+        text-align: justify;
+    }
+    
+    .passage-text p {
+        margin-bottom: 1.5rem;
+    }
+    
+    .question-panel {
+        position: sticky;
+        top: 80px;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row">
+        <!-- Passage Panel -->
+        <div class="col-lg-7 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-book-open"></i> {{ passage.title }}
+                        </h5>
+                        
+                        <div>
+                            <span class="badge bg-primary">{{ passage.topic|title }}</span>
+                            <span class="badge bg-secondary ms-2">
+                                <i class="fas fa-clock"></i> <span id="timer">00:00</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="passage-text">
+                        {{ passage.passage_text|safe }}
+                    </div>
+                    
+                    {% if passage.source %}
+                    <div class="mt-4 pt-3 border-top">
+                        <small class="text-muted">
+                            <i class="fas fa-link"></i> Source: {{ passage.source }}
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Questions Panel -->
+        <div class="col-lg-5">
+            <div class="question-panel">
+                <form method="POST" action="{{ url_for('reading.passage_submit', passage_id=passage.id) }}" id="answerForm">
+                    <input type="hidden" name="time_taken" id="timeTaken" value="0">
+                    
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-question-circle"></i>
+                                Questions ({{ questions|length }})
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% for question in questions %}
+                            <div class="glass p-4 mb-3">
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="badge bg-primary" style="min-width: 40px;">
+                                        {{ question.question_number }}
+                                    </div>
+                                    
+                                    <div class="flex-grow-1">
+                                        <!-- Question Type -->
+                                        <span class="badge bg-secondary mb-2">
+                                            {{ question.question_type|upper }}
+                                        </span>
+                                        
+                                        <!-- Paragraph Reference -->
+                                        {% if question.paragraph_reference %}
+                                        <span class="badge bg-info mb-2">
+                                            Paragraph {{ question.paragraph_reference }}
+                                        </span>
+                                        {% endif %}
+                                        
+                                        <!-- Question Text -->
+                                        <p class="mb-3">{{ question.question_text }}</p>
+                                        
+                                        <!-- Answer Input -->
+                                        {% if question.question_type == 'multiple_choice' and question.options %}
+                                            <div class="list-group">
+                                                {% for option in question.options %}
+                                                <label class="list-group-item list-group-item-action">
+                                                    <input type="radio" 
+                                                           name="question_{{ question.id }}" 
+                                                           value="{{ option }}" 
+                                                           class="form-check-input me-2">
+                                                    {{ option }}
+                                                </label>
+                                                {% endfor %}
+                                            </div>
+                                        {% elif question.question_type == 'true_false_ng' %}
+                                            <select name="question_{{ question.id }}" class="form-select">
+                                                <option value="">-- Chọn --</option>
+                                                <option value="TRUE">TRUE</option>
+                                                <option value="FALSE">FALSE</option>
+                                                <option value="NOT GIVEN">NOT GIVEN</option>
+                                            </select>
+                                        {% elif question.question_type == 'yes_no_ng' %}
+                                            <select name="question_{{ question.id }}" class="form-select">
+                                                <option value="">-- Chọn --</option>
+                                                <option value="YES">YES</option>
+                                                <option value="NO">NO</option>
+                                                <option value="NOT GIVEN">NOT GIVEN</option>
+                                            </select>
+                                        {% else %}
+                                            <input type="text" 
+                                                   name="question_{{ question.id }}" 
+                                                   class="form-control" 
+                                                   placeholder="Nhập câu trả lời...">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('reading.passages') }}" class="btn btn-ghost">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                        
+                        <button type="submit" class="btn btn-primary flex-grow-1">
+                            <i class="fas fa-paper-plane"></i> Nộp bài
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Timer
+    let startTime = Date.now();
+    
+    setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        
+        document.getElementById('timer').textContent = 
+            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        document.getElementById('timeTaken').value = elapsed;
+    }, 1000);
+    
+    // Warn before leaving
+    window.addEventListener('beforeunload', function(e) {
+        const inputs = document.querySelectorAll('input[type="text"], input[type="radio"]:checked, select');
+        let hasAnswers = false;
+        
+        inputs.forEach(input => {
+            if (input.value) hasAnswers = true;
+        });
+        
+        if (hasAnswers) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+</script>
+{% endblock %}

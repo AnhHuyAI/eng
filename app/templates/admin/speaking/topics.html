@@ -1,0 +1,99 @@
+<!-- app/templates/admin/speaking/topics.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Speaking Topics - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="text-gradient mb-2">
+                            <i class="fas fa-microphone"></i> Speaking Topics
+                        </h1>
+                        <p class="text-muted mb-0">Quản lý chủ đề speaking</p>
+                    </div>
+                    <a href="{{ url_for('admin.speaking_topic_add') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Topic
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Topics Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Part</th>
+                                    <th>Topic</th>
+                                    <th>Category</th>
+                                    <th>Difficulty</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for topic in topics %}
+                                <tr>
+                                    <td>#{{ topic.id }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">Part {{ topic.part }}</span>
+                                    </td>
+                                    <td>
+                                        <strong>{{ topic.topic }}</strong>
+                                        {% if topic.part == 2 and topic.cue_card_title %}
+                                        <br><small class="text-muted">{{ topic.cue_card_title }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td><small>{{ topic.category or '-' }}</small></td>
+                                    <td>
+                                        {% if topic.difficulty %}
+                                        <span class="badge" 
+                                              style="background: {% if topic.difficulty == 'easy' %}#10b981{% elif topic.difficulty == 'medium' %}#f59e0b{% else %}#ef4444{% endif %}">
+                                            {{ topic.difficulty|upper }}
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if topic.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('admin.speaking_topic_edit', topic_id=topic.id) }}" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form method="POST" 
+                                              action="{{ url_for('admin.speaking_topic_delete', topic_id=topic.id) }}" 
+                                              style="display: inline;"
+                                              onsubmit="return confirm('Delete this topic?')">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

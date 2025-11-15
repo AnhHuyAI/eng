@@ -1,0 +1,75 @@
+<!-- app/templates/emails/welcome.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f8f9ff;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Chào mừng đến IELTS AI Platform!</h1>
+        </div>
+        <div class="content">
+            <p>Xin chào <strong>{{ user.full_name or user.email }}</strong>,</p>
+            
+            <p>Cảm ơn bạn đã đăng ký IELTS AI Platform! Chúng tôi rất vui được đồng hành cùng bạn trong hành trình chinh phục IELTS.</p>
+            
+            <h3>🚀 Bắt đầu ngay:</h3>
+            <ul>
+                <li>📚 Học từ vựng theo chủ đề</li>
+                <li>👂 Luyện Listening miễn phí</li>
+                <li>📖 Luyện Reading miễn phí</li>
+                <li>✍️ Writing được chấm bằng AI</li>
+                <li>🗣️ Speaking với Speech-to-Text</li>
+            </ul>
+            
+            <p>Bạn hiện có <strong>{{ user.credits }} credits</strong> trong tài khoản.</p>
+            
+            <center>
+                <a href="https://ielts-platform.com/user/dashboard" class="button">
+                    Bắt đầu học ngay
+                </a>
+            </center>
+            
+            <p>Nếu bạn có bất kỳ câu hỏi nào, đừng ngần ngại liên hệ với chúng tôi.</p>
+            
+            <p>Chúc bạn học tập hiệu quả!<br>
+            <strong>IELTS AI Team</strong></p>
+        </div>
+    </div>
+</body>
+</html>

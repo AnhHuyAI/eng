@@ -1,0 +1,117 @@
+<!-- app/templates/admin/listening/question_add.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Add Question - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="glass p-4 mb-4">
+                <a href="{{ url_for('admin.listening_questions', section_id=section.id) }}" 
+                   class="btn btn-ghost btn-sm mb-3">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+                <h1 class="text-gradient mb-2">
+                    <i class="fas fa-plus"></i> Add Question
+                </h1>
+                <p class="text-muted mb-0">{{ section.title }}</p>
+            </div>
+            
+            <!-- Form -->
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-4">
+                            <label class="form-label">Question Number *</label>
+                            <input type="number" name="question_number" class="form-control" 
+                                   min="1" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Question Type *</label>
+                            <select name="question_type" class="form-select" id="questionType" required>
+                                <option value="multiple_choice">Multiple Choice</option>
+                                <option value="fill_blank">Fill in the Blank</option>
+                                <option value="short_answer">Short Answer</option>
+                                <option value="matching">Matching</option>
+                                <option value="map_diagram">Map/Diagram Labeling</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Question Text *</label>
+                            <textarea name="question_text" class="form-control" rows="3" required></textarea>
+                        </div>
+                        
+                        <!-- Options (for MCQ) -->
+                        <div class="mb-4" id="optionsField" style="display: none;">
+                            <label class="form-label">Options (JSON array)</label>
+                            <textarea name="options" class="form-control" rows="3" 
+                                      placeholder='["Option A", "Option B", "Option C", "Option D"]'></textarea>
+                            <small class="text-muted">Format: JSON array of strings</small>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Correct Answer *</label>
+                            <input type="text" name="correct_answer" class="form-control" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Explanation</label>
+                            <textarea name="explanation" class="form-control" rows="3" 
+                                      placeholder="Giải thích đáp án..."></textarea>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Start Time (seconds)</label>
+                                <input type="number" name="start_time" class="form-control" 
+                                       min="0" placeholder="0">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">End Time (seconds)</label>
+                                <input type="number" name="end_time" class="form-control" 
+                                       min="0" placeholder="60">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Image (optional)</label>
+                            <input type="file" name="image_file" class="form-control" 
+                                   accept="image/*">
+                            <small class="text-muted">For maps, diagrams, etc.</small>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('admin.listening_questions', section_id=section.id) }}" 
+                               class="btn btn-ghost">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary flex-grow-1">
+                                <i class="fas fa-save"></i> Create Question
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('questionType').addEventListener('change', function() {
+        const optionsField = document.getElementById('optionsField');
+        if (this.value === 'multiple_choice') {
+            optionsField.style.display = 'block';
+        } else {
+            optionsField.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}

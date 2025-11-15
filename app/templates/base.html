@@ -1,0 +1,593 @@
+<!-- app/templates/base.html -->
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}IELTS AI Platform{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            /* Light mode colors */
+            --primary: #667eea;
+            --primary-light: #764ba2;
+            --secondary: #f093fb;
+            --accent: #4facfe;
+            
+            --bg-primary: #f8f9ff;
+            --bg-secondary: #ffffff;
+            --bg-glass: rgba(255, 255, 255, 0.7);
+            --bg-glass-hover: rgba(255, 255, 255, 0.9);
+            
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+            
+            --border-color: rgba(102, 126, 234, 0.1);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            --shadow-lg: 0 20px 60px 0 rgba(31, 38, 135, 0.2);
+        }
+        
+        [data-theme="dark"] {
+            /* Dark mode colors */
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-glass: rgba(30, 41, 59, 0.7);
+            --bg-glass-hover: rgba(30, 41, 59, 0.9);
+            
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            
+            --border-color: rgba(102, 126, 234, 0.2);
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 20px 60px 0 rgba(0, 0, 0, 0.4);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* Animated gradient background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 50%, var(--secondary) 100%);
+            opacity: 0.05;
+            z-index: -1;
+            animation: gradientShift 15s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(10px) translateY(10px); }
+            50% { transform: translateX(-10px) translateY(10px); }
+            75% { transform: translateX(10px) translateY(-10px); }
+        }
+        
+        /* Glassmorphism */
+        .glass {
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .glass:hover {
+            background: var(--bg-glass-hover);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        
+        /* Navbar */
+        .navbar {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nav-link {
+            color: var(--text-primary) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-link:hover {
+            background: var(--bg-glass);
+            transform: translateY(-2px);
+        }
+        
+        .nav-link.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white !important;
+        }
+        
+        /* Credits badge */
+        .credits-badge {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: var(--shadow);
+        }
+        
+        /* Buttons */
+        .btn {
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .btn-outline-primary {
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            background: transparent;
+        }
+        
+        .btn-outline-primary:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .btn-ghost {
+            background: var(--bg-glass);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-ghost:hover {
+            background: var(--bg-glass-hover);
+            transform: translateY(-2px);
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+        }
+        
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        /* Forms */
+        .form-control, .form-select {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            background: var(--bg-glass);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            color: var(--text-primary);
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Dark mode toggle */
+        .theme-toggle {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .theme-toggle i {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+        
+        /* Alerts */
+        .alert {
+            border-radius: 12px;
+            border: none;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+        }
+        
+        .alert-success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border-left: 4px solid #10b981;
+        }
+        
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .alert-info {
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        /* Module icons */
+        .module-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .module-icon.vocabulary {
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+        }
+        
+        .module-icon.listening {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        }
+        
+        .module-icon.speaking {
+            background: linear-gradient(135deg, #10b981, #14b8a6);
+        }
+        
+        .module-icon.reading {
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+        }
+        
+        .module-icon.writing {
+            background: linear-gradient(135deg, #ef4444, #f43f5e);
+        }
+        
+        /* Utilities */
+        .text-gradient {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-light);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+            
+            .theme-toggle {
+                width: 50px;
+                height: 50px;
+                bottom: 1rem;
+                right: 1rem;
+            }
+            
+            .module-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    {% if current_user.is_authenticated %}
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('user.dashboard') if not current_user.is_admin() else url_for('admin.dashboard') }}">
+                <i class="fas fa-graduation-cap"></i> IELTS AI
+            </a>
+            
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="fas fa-bars" style="color: var(--text-primary);"></i>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                {% if current_user.is_admin() %}
+                    <!-- Admin Navigation -->
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+                                <i class="fas fa-chart-line"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-cog"></i> Quản lý
+                            </a>
+                            <ul class="dropdown-menu glass">
+                                <li><a class="dropdown-item" href="{{ url_for('admin.payments_pending') }}">
+                                    <i class="fas fa-money-bill-wave"></i> Thanh toán
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin.users') }}">
+                                    <i class="fas fa-users"></i> Users
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin.vocabulary_topics') }}">
+                                    <i class="fas fa-book"></i> Từ vựng
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin.listening_sections') }}">
+                                    <i class="fas fa-headphones"></i> Listening
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin.reading_passages') }}">
+                                    <i class="fas fa-book-reader"></i> Reading
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin.speaking_topics') }}">
+                                    <i class="fas fa-microphone"></i> Speaking
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin.writing_tasks') }}">
+                                    <i class="fas fa-pen"></i> Writing
+                                </a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.logout') }}">
+                                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                            </a>
+                        </li>
+                    </ul>
+                {% else %}
+                    <!-- User Navigation -->
+                    <ul class="navbar-nav mx-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('user.dashboard') }}">
+                                <i class="fas fa-home"></i> Trang chủ
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-graduation-cap"></i> Học tập
+                            </a>
+                            <ul class="dropdown-menu glass">
+                                <li><a class="dropdown-item" href="{{ url_for('vocabulary.index') }}">
+                                    📚 Từ vựng
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('listening.index') }}">
+                                    👂 Listening
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('reading.index') }}">
+                                    📖 Reading
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('speaking.index') }}">
+                                    🗣️ Speaking
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('writing.index') }}">
+                                    ✍️ Writing
+                                </a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('user.progress') }}">
+                                <i class="fas fa-chart-bar"></i> Tiến độ
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link credits-badge" href="{{ url_for('payment.packages') }}">
+                                <i class="fas fa-coins"></i>
+                                <span>{{ current_user.credits }} Credits</span>
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle"></i> {{ current_user.full_name or current_user.email.split('@')[0] }}
+                            </a>
+                            <ul class="dropdown-menu glass dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{{ url_for('user.profile') }}">
+                                    <i class="fas fa-user"></i> Hồ sơ
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('payment.history') }}">
+                                    <i class="fas fa-history"></i> Lịch sử nạp tiền
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                                </a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+    
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mt-3">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' if category == 'warning' else 'info-circle' }}"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Dark Mode Toggle -->
+    <div class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon" id="themeIcon"></i>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Dark Mode Script -->
+    <script>
+        // Dark mode toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const htmlElement = document.documentElement;
+        
+        // Check saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+        
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+        
+        function updateThemeIcon(theme) {
+            if (theme === 'dark') {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

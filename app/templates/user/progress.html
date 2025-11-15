@@ -1,0 +1,205 @@
+<!-- app/templates/user/progress.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Tiến độ học tập - IELTS AI Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .progress-ring {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: conic-gradient(
+            var(--primary) calc(var(--progress) * 1%), 
+            var(--bg-secondary) 0
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+    
+    .progress-ring::before {
+        content: '';
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: var(--bg-glass);
+        position: absolute;
+    }
+    
+    .progress-value {
+        position: relative;
+        z-index: 1;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass p-4">
+                <h1 class="text-gradient mb-2">
+                    <i class="fas fa-chart-line"></i> Tiến độ học tập
+                </h1>
+                <p class="text-muted mb-0">Theo dõi sự tiến bộ của bạn qua thời gian</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Progress Charts -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chart-area"></i> Band Score theo thời gian (30 ngày gần đây)
+                </div>
+                <div class="card-body">
+                    <canvas id="progressChart" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Skills Breakdown -->
+    <div class="row">
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="glass p-4 text-center h-100">
+                <div class="module-icon writing mx-auto">
+                    <i class="fas fa-pen" style="color: white;"></i>
+                </div>
+                <h5 class="mb-3">Writing</h5>
+                <div class="progress-ring mx-auto mb-3" style="--progress: {% if writings %}{{ (writings|length / 30 * 100)|int }}{% else %}0{% endif %}">
+                    <span class="progress-value">{{ writings|length }}</span>
+                </div>
+                <p class="text-muted small mb-0">Bài đã làm trong 30 ngày</p>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="glass p-4 text-center h-100">
+                <div class="module-icon speaking mx-auto">
+                    <i class="fas fa-microphone" style="color: white;"></i>
+                </div>
+                <h5 class="mb-3">Speaking</h5>
+                <div class="progress-ring mx-auto mb-3" style="--progress: {% if speakings %}{{ (speakings|length / 30 * 100)|int }}{% else %}0{% endif %}">
+                    <span class="progress-value">{{ speakings|length }}</span>
+                </div>
+                <p class="text-muted small mb-0">Bài đã làm trong 30 ngày</p>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="glass p-4 text-center h-100">
+                <div class="module-icon listening mx-auto">
+                    <i class="fas fa-headphones" style="color: white;"></i>
+                </div>
+                <h5 class="mb-3">Listening</h5>
+                <div class="progress-ring mx-auto mb-3" style="--progress: {% if listenings %}{{ (listenings|length / 30 * 100)|int }}{% else %}0{% endif %}">
+                    <span class="progress-value">{{ listenings|length }}</span>
+                </div>
+                <p class="text-muted small mb-0">Bài đã làm trong 30 ngày</p>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="glass p-4 text-center h-100">
+                <div class="module-icon reading mx-auto">
+                    <i class="fas fa-book-reader" style="color: white;"></i>
+                </div>
+                <h5 class="mb-3">Reading</h5>
+                <div class="progress-ring mx-auto mb-3" style="--progress: {% if readings %}{{ (readings|length / 30 * 100)|int }}{% else %}0{% endif %}">
+                    <span class="progress-value">{{ readings|length }}</span>
+                </div>
+                <p class="text-muted small mb-0">Bài đã làm trong 30 ngày</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Get data from API
+    fetch('{{ url_for("user.progress_data") }}')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('progressChart');
+            
+            // Prepare datasets
+            const allDates = new Set();
+            data.writing.forEach(item => allDates.add(item.date));
+            data.speaking.forEach(item => allDates.add(item.date));
+            
+            const sortedDates = Array.from(allDates).sort();
+            
+            // Create chart
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sortedDates,
+                    datasets: [
+                        {
+                            label: 'Writing',
+                            data: sortedDates.map(date => {
+                                const item = data.writing.find(w => w.date === date);
+                                return item ? item.score : null;
+                            }),
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Speaking',
+                            data: sortedDates.map(date => {
+                                const item = data.speaking.find(s => s.date === date);
+                                return item ? item.score : null;
+                            }),
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 0,
+                            max: 9,
+                            ticks: {
+                                stepSize: 0.5
+                            },
+                            grid: {
+                                color: 'rgba(102, 126, 234, 0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    }
+                }
+            });
+        });
+</script>
+{% endblock %}

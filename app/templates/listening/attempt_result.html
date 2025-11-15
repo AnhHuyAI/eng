@@ -1,0 +1,148 @@
+<!-- app/templates/listening/attempt_result.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Kết quả Listening - IELTS AI Platform{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="glass p-4 mb-4 text-center">
+                <h1 class="text-gradient mb-2">
+                    <i class="fas fa-check-circle"></i> Kết quả Listening
+                </h1>
+                <p class="text-muted mb-0">
+                    {{ section.title }} - 
+                    {{ attempt.completed_at.strftime('%d/%m/%Y %H:%M') }}
+                </p>
+            </div>
+            
+            <!-- Score Summary -->
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body p-4">
+                            <h6 class="text-muted mb-2">Band Score</h6>
+                            <h1 class="text-gradient mb-0">{{ attempt.band_score }}</h1>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body p-4">
+                            <h6 class="text-muted mb-2">Số câu đúng</h6>
+                            <h1 class="text-success mb-0">
+                                {{ attempt.correct_answers }}/{{ attempt.total_questions }}
+                            </h1>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body p-4">
+                            <h6 class="text-muted mb-2">Tỷ lệ đúng</h6>
+                            <h1 class="mb-0">
+                                {{ (attempt.correct_answers / attempt.total_questions * 100)|int }}%
+                            </h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Questions Review -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-check"></i> Chi tiết câu hỏi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for result in results %}
+                    <div class="glass p-4 mb-3">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="badge {% if result.is_correct %}bg-success{% else %}bg-danger{% endif %}" 
+                                 style="min-width: 40px;">
+                                {{ result.question.question_number }}
+                            </div>
+                            
+                            <div class="flex-grow-1">
+                                <p class="mb-2"><strong>{{ result.question.question_text }}</strong></p>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-2">
+                                        <small class="text-muted d-block">Câu trả lời của bạn:</small>
+                                        <span class="{% if result.is_correct %}text-success{% else %}text-danger{% endif %}">
+                                            {{ result.user_answer or '(Không trả lời)' }}
+                                        </span>
+                                    </div>
+                                    
+                                    {% if not result.is_correct %}
+                                    <div class="col-md-6 mb-2">
+                                        <small class="text-muted d-block">Đáp án đúng:</small>
+                                        <span class="text-success">
+                                            <strong>{{ result.correct_answer }}</strong>
+                                        </span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if result.explanation %}
+                                <div class="alert alert-info mt-2 mb-0">
+                                    <i class="fas fa-lightbulb"></i>
+                                    {{ result.explanation }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div>
+                                {% if result.is_correct %}
+                                <i class="fas fa-check-circle text-success" style="font-size: 1.5rem;"></i>
+                                {% else %}
+                                <i class="fas fa-times-circle text-danger" style="font-size: 1.5rem;"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Transcript -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-alt"></i> Transcript
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="glass p-4">
+                        <p style="white-space: pre-wrap; line-height: 1.8;">{{ section.transcript }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="d-flex gap-2 justify-content-center">
+                <a href="{{ url_for('listening.section_practice', section_id=section.id) }}" 
+                   class="btn btn-primary">
+                    <i class="fas fa-redo"></i> Làm lại
+                </a>
+                
+                <a href="{{ url_for('listening.sections') }}" 
+                   class="btn btn-outline-primary">
+                    <i class="fas fa-list"></i> Chọn section khác
+                </a>
+                
+                <a href="{{ url_for('listening.history') }}" 
+                   class="btn btn-ghost">
+                    <i class="fas fa-history"></i> Xem lịch sử
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

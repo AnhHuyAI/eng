@@ -1,0 +1,118 @@
+<!-- app/templates/reading/passages.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Reading Passages - IELTS AI Platform{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass p-4">
+                <a href="{{ url_for('reading.index') }}" class="btn btn-ghost btn-sm mb-3">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+                <h1 class="text-gradient mb-2">
+                    <i class="fas fa-book-reader"></i> Reading Passages
+                </h1>
+                <p class="text-muted mb-0">Chọn một passage để bắt đầu luyện đọc</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filter -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <select class="form-select" onchange="window.location.href='{{ url_for('reading.passages') }}?topic=' + this.value">
+                <option value="">Tất cả chủ đề</option>
+                <option value="science" {% if request.args.get('topic') == 'science' %}selected{% endif %}>Science</option>
+                <option value="technology" {% if request.args.get('topic') == 'technology' %}selected{% endif %}>Technology</option>
+                <option value="history" {% if request.args.get('topic') == 'history' %}selected{% endif %}>History</option>
+                <option value="society" {% if request.args.get('topic') == 'society' %}selected{% endif %}>Society</option>
+                <option value="environment" {% if request.args.get('topic') == 'environment' %}selected{% endif %}>Environment</option>
+            </select>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <select class="form-select" onchange="window.location.href='{{ url_for('reading.passages') }}?difficulty=' + this.value">
+                <option value="">Tất cả độ khó</option>
+                <option value="easy" {% if request.args.get('difficulty') == 'easy' %}selected{% endif %}>Easy</option>
+                <option value="medium" {% if request.args.get('difficulty') == 'medium' %}selected{% endif %}>Medium</option>
+                <option value="hard" {% if request.args.get('difficulty') == 'hard' %}selected{% endif %}>Hard</option>
+            </select>
+        </div>
+    </div>
+    
+    <!-- Passages Grid -->
+    <div class="row">
+        {% for passage in passages %}
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        {% if passage.topic %}
+                        <span class="badge bg-primary">{{ passage.topic|title }}</span>
+                        {% endif %}
+                        
+                        {% if passage.difficulty %}
+                        <span class="badge" 
+                              style="background: {% if passage.difficulty == 'easy' %}#10b981{% elif passage.difficulty == 'medium' %}#f59e0b{% else %}#ef4444{% endif %}">
+                            {{ passage.difficulty|upper }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <h5 class="mb-3">{{ passage.title }}</h5>
+                    
+                    <div class="glass p-3 mb-3">
+                        <p class="mb-0 small text-muted" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                            {{ passage.passage_text[:200] }}...
+                        </p>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <small class="text-muted d-block">
+                                <i class="fas fa-file-word"></i>
+                                {{ passage.word_count }} từ
+                            </small>
+                            <small class="text-muted">
+                                <i class="fas fa-clock"></i>
+                                ~{{ passage.reading_time }} phút
+                            </small>
+                        </div>
+                        
+                        <span class="badge bg-success">
+                            <i class="fas fa-gift"></i> MIỄN PHÍ
+                        </span>
+                    </div>
+                    
+                    <small class="text-muted d-block mb-3">
+                        <i class="fas fa-question-circle"></i>
+                        {{ passage.questions.count() }} câu hỏi
+                    </small>
+                    
+                    <a href="{{ url_for('reading.passage_practice', passage_id=passage.id) }}" 
+                       class="btn btn-primary w-100">
+                        <i class="fas fa-book-open"></i> Đọc & làm bài
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if not passages %}
+    <div class="row">
+        <div class="col-12">
+            <div class="glass p-5 text-center">
+                <i class="fas fa-inbox" style="font-size: 4rem; color: var(--text-muted);"></i>
+                <h4 class="mt-4 mb-3">Không tìm thấy passage nào</h4>
+                <p class="text-muted mb-0">Thử thay đổi bộ lọc để xem thêm</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

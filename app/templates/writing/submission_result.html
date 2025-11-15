@@ -1,0 +1,239 @@
+<!-- app/templates/writing/submission_result.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Kết quả Writing - IELTS AI Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .score-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: conic-gradient(
+            var(--primary) calc(var(--score) * 11.11%), 
+            var(--bg-secondary) 0
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        margin: 0 auto;
+    }
+    
+    .score-circle::before {
+        content: '';
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: var(--bg-glass);
+        position: absolute;
+    }
+    
+    .score-value {
+        position: relative;
+        z-index: 1;
+        font-size: 2rem;
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="glass p-4 mb-4 text-center">
+                <h1 class="text-gradient mb-2">
+                    <i class="fas fa-check-circle"></i> Kết quả chấm bài
+                </h1>
+                <p class="text-muted mb-0">
+                    Writing Task {{ task.task_type }} - 
+                    {{ submission.created_at.strftime('%d/%m/%Y %H:%M') }}
+                </p>
+            </div>
+            
+            <!-- Overall Score -->
+            <div class="card mb-4">
+                <div class="card-body p-5 text-center">
+                    <h4 class="mb-4">Overall Band Score</h4>
+                    <div class="score-circle" style="--score: {{ submission.overall_band }}">
+                        <span class="score-value text-gradient">{{ submission.overall_band }}</span>
+                    </div>
+                    <p class="text-muted mt-4 mb-0">
+                        {% if submission.overall_band >= 8.0 %}
+                        Xuất sắc! Bạn có kỹ năng viết rất tốt.
+                        {% elif submission.overall_band >= 7.0 %}
+                        Tốt lắm! Bạn đang tiến bộ rất tốt.
+                        {% elif submission.overall_band >= 6.0 %}
+                        Khá tốt! Tiếp tục cố gắng để đạt band cao hơn.
+                        {% else %}
+                        Cần cải thiện thêm. Hãy xem feedback bên dưới.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Criteria Scores -->
+            <div class="row mb-4">
+                {% if task.task_type == 1 %}
+                <div class="col-md-3 mb-3">
+                    <div class="glass p-4 text-center h-100">
+                        <h6 class="text-muted mb-2">Task Achievement</h6>
+                        <h2 class="text-gradient mb-0">{{ submission.task_achievement }}</h2>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-md-3 mb-3">
+                    <div class="glass p-4 text-center h-100">
+                        <h6 class="text-muted mb-2">Task Response</h6>
+                        <h2 class="text-gradient mb-0">{{ submission.task_response }}</h2>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="col-md-3 mb-3">
+                    <div class="glass p-4 text-center h-100">
+                        <h6 class="text-muted mb-2">Coherence & Cohesion</h6>
+                        <h2 class="text-gradient mb-0">{{ submission.coherence_cohesion }}</h2>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                    <div class="glass p-4 text-center h-100">
+                        <h6 class="text-muted mb-2">Lexical Resource</h6>
+                        <h2 class="text-gradient mb-0">{{ submission.lexical_resource }}</h2>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                    <div class="glass p-4 text-center h-100">
+                        <h6 class="text-muted mb-2">Grammar Accuracy</h6>
+                        <h2 class="text-gradient mb-0">{{ submission.grammar_accuracy }}</h2>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Detailed Feedback -->
+            {% set feedback_key = 'task_achievement' if task.task_type == 1 else 'task_response' %}
+            {% for criterion_name, criterion_data in submission.detailed_feedback.items() %}
+                {% if criterion_name not in ['overall_band'] %}
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-star"></i> 
+                            {{ criterion_name.replace('_', ' ')|title }}
+                            - Band {{ criterion_data.score }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Strengths -->
+                        <div class="mb-4">
+                            <h6 class="text-success mb-3">
+                                <i class="fas fa-check-circle"></i> Điểm mạnh
+                            </h6>
+                            <ul class="list-unstyled">
+                                {% for strength in criterion_data.strengths %}
+                                <li class="glass p-3 mb-2">
+                                    <i class="fas fa-plus-circle text-success"></i>
+                                    {{ strength }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
+                        <!-- Weaknesses -->
+                        <div class="mb-4">
+                            <h6 class="text-warning mb-3">
+                                <i class="fas fa-exclamation-triangle"></i> Cần cải thiện
+                            </h6>
+                            <ul class="list-unstyled">
+                                {% for weakness in criterion_data.weaknesses %}
+                                <li class="glass p-3 mb-2">
+                                    <i class="fas fa-minus-circle text-warning"></i>
+                                    {{ weakness }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
+                        <!-- Examples -->
+                        {% if criterion_data.examples %}
+                        <div class="mb-4">
+                            <h6 class="text-info mb-3">
+                                <i class="fas fa-quote-left"></i> Ví dụ từ bài viết
+                            </h6>
+                            {% for example in criterion_data.examples %}
+                            <div class="glass p-3 mb-2 fst-italic">
+                                "{{ example }}"
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Suggestions -->
+                        <div>
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-lightbulb"></i> Gợi ý cải thiện
+                            </h6>
+                            <ul class="list-unstyled">
+                                {% for suggestion in criterion_data.suggestions %}
+                                <li class="glass p-3 mb-2">
+                                    <i class="fas fa-arrow-right text-primary"></i>
+                                    {{ suggestion }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+            
+            <!-- Your Essay -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-alt"></i> Bài viết của bạn
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="glass p-4">
+                        <p style="white-space: pre-wrap; line-height: 1.8;">{{ submission.essay_text }}</p>
+                    </div>
+                    
+                    <div class="mt-3 d-flex justify-content-between text-muted small">
+                        <span>
+                            <i class="fas fa-file-word"></i> 
+                            Số từ: <strong>{{ submission.word_count }}</strong>
+                        </span>
+                        <span>
+                            <i class="fas fa-coins"></i>
+                            Credits sử dụng: <strong>{{ submission.credits_used }}</strong>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="d-flex gap-2 justify-content-center">
+                <a href="{{ url_for('writing.task_practice', task_id=task.id) }}" 
+                   class="btn btn-primary">
+                    <i class="fas fa-redo"></i> Làm lại đề này
+                </a>
+                
+                <a href="{{ url_for('writing.task_' + (task.task_type|string) + '_list') }}" 
+                   class="btn btn-outline-primary">
+                    <i class="fas fa-list"></i> Chọn đề khác
+                </a>
+                
+                <a href="{{ url_for('writing.history') }}" 
+                   class="btn btn-ghost">
+                    <i class="fas fa-history"></i> Xem lịch sử
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

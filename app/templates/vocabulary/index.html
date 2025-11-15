@@ -1,0 +1,100 @@
+<!-- app/templates/vocabulary/index.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Từ vựng - IELTS AI Platform{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass p-4">
+                <h1 class="text-gradient mb-2">
+                    <i class="fas fa-book"></i> Học từ vựng IELTS
+                </h1>
+                <p class="text-muted mb-0">
+                    Học từ vựng theo chủ đề để nâng cao Band Score của bạn
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Topics Grid -->
+    <div class="row">
+        {% for topic in topics %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <a href="{{ url_for('vocabulary.topic_words', topic_id=topic.id) }}" 
+               class="text-decoration-none">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="module-icon vocabulary">
+                                <i class="{{ topic.icon or 'fas fa-book' }}" style="color: white;"></i>
+                            </div>
+                            
+                            <div class="flex-grow-1">
+                                <h5 class="mb-2">{{ topic.name }}</h5>
+                                <p class="text-muted small mb-3">
+                                    {{ topic.description }}
+                                </p>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-primary">
+                                        {{ topic.total_words }} từ
+                                    </span>
+                                    
+                                    <div class="text-end">
+                                        {% if topic.user_learned > 0 %}
+                                        <small class="text-success">
+                                            <i class="fas fa-check-circle"></i>
+                                            {{ topic.user_learned }}/{{ topic.total_words }}
+                                        </small>
+                                        {% else %}
+                                        <small class="text-muted">
+                                            Chưa học
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Progress Bar -->
+                                {% if topic.total_words > 0 %}
+                                <div class="progress mt-3" style="height: 6px;">
+                                    <div class="progress-bar" 
+                                         style="width: {{ (topic.user_learned / topic.total_words * 100)|int }}%; 
+                                                background: linear-gradient(135deg, #a855f7, #ec4899);">
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Quizzes Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="glass p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-2">
+                            <i class="fas fa-graduation-cap"></i> Bài kiểm tra từ vựng
+                        </h4>
+                        <p class="text-muted mb-0">
+                            Làm bài kiểm tra để củng cố kiến thức
+                        </p>
+                    </div>
+                    <a href="{{ url_for('vocabulary.quizzes') }}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Xem tất cả quiz
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

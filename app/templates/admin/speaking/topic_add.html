@@ -1,0 +1,121 @@
+ 
+<!-- app/templates/admin/speaking/topic_add.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Add Speaking Topic - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="glass p-4 mb-4">
+                <a href="{{ url_for('admin.speaking_topics') }}" class="btn btn-ghost btn-sm mb-3">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+                <h1 class="text-gradient mb-2">
+                    <i class="fas fa-plus"></i> Add Speaking Topic
+                </h1>
+            </div>
+            
+            <!-- Form -->
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label class="form-label">Part *</label>
+                            <select name="part" class="form-select" id="partSelect" required>
+                                <option value="1">Part 1</option>
+                                <option value="2">Part 2</option>
+                                <option value="3">Part 3</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Topic *</label>
+                            <input type="text" name="topic" class="form-control" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Category</label>
+                            <input type="text" name="category" class="form-control" 
+                                   placeholder="e.g., Daily Life, Work">
+                        </div>
+                        
+                        <!-- Part 1 Questions -->
+                        <div class="mb-4" id="part1Field" style="display: none;">
+                            <label class="form-label">Part 1 Questions (JSON array)</label>
+                            <textarea name="part1_questions" class="form-control" rows="5" 
+                                      placeholder='["Question 1?", "Question 2?", "Question 3?"]'></textarea>
+                        </div>
+                        
+                        <!-- Part 2 Cue Card -->
+                        <div id="part2Fields" style="display: none;">
+                            <div class="mb-4">
+                                <label class="form-label">Cue Card Title</label>
+                                <input type="text" name="cue_card_title" class="form-control" 
+                                       placeholder="Describe a person you admire">
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">Cue Card Points (JSON array)</label>
+                                <textarea name="cue_card_points" class="form-control" rows="5" 
+                                          placeholder='["Who this person is", "How you know them", "What they do"]'></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Part 3 Questions -->
+                        <div class="mb-4" id="part3Field" style="display: none;">
+                            <label class="form-label">Part 3 Questions (JSON array)</label>
+                            <textarea name="part3_questions" class="form-control" rows="5" 
+                                      placeholder='["Question 1?", "Question 2?"]'></textarea>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Difficulty</label>
+                            <select name="difficulty" class="form-select">
+                                <option value="easy">Easy</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('admin.speaking_topics') }}" class="btn btn-ghost">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary flex-grow-1">
+                                <i class="fas fa-save"></i> Create Topic
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('partSelect').addEventListener('change', function() {
+        const part = this.value;
+        
+        document.getElementById('part1Field').style.display = 'none';
+        document.getElementById('part2Fields').style.display = 'none';
+        document.getElementById('part3Field').style.display = 'none';
+        
+        if (part === '1') {
+            document.getElementById('part1Field').style.display = 'block';
+        } else if (part === '2') {
+            document.getElementById('part2Fields').style.display = 'block';
+        } else if (part === '3') {
+            document.getElementById('part3Field').style.display = 'block';
+        }
+    });
+    
+    // Trigger on load
+    document.getElementById('partSelect').dispatchEvent(new Event('change'));
+</script>
+{% endblock %}

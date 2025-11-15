@@ -1,0 +1,228 @@
+<!-- app/templates/writing/task_practice.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Làm bài Writing Task {{ task.task_type }} - IELTS AI Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .word-counter {
+        position: sticky;
+        top: 80px;
+        z-index: 100;
+    }
+    
+    .essay-textarea {
+        min-height: 500px;
+        font-size: 1rem;
+        line-height: 1.8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Question Panel -->
+        <div class="col-lg-5 mb-4">
+            <div class="card position-sticky" style="top: 80px;">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-question-circle"></i> 
+                        Writing Task {{ task.task_type }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Chart Image (Task 1) -->
+                    {% if task.task_type == 1 and task.chart_image_url %}
+                    <img src="{{ url_for('static', filename='uploads/' + task.chart_image_url) }}" 
+                         alt="Chart" 
+                         class="img-fluid rounded mb-3"
+                         onclick="window.open(this.src, '_blank')"
+                         style="cursor: pointer;">
+                    {% endif %}
+                    
+                    <!-- Question -->
+                    <div class="glass p-3 mb-3">
+                        <p class="mb-0">{{ task.question_text }}</p>
+                    </div>
+                    
+                    <!-- Instructions -->
+                    {% if task.instructions %}
+                    <div class="alert alert-info">
+                        <strong><i class="fas fa-info-circle"></i> Hướng dẫn:</strong>
+                        <p class="mb-0 mt-2">{{ task.instructions }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Requirements -->
+                    <div class="glass p-3 mb-3">
+                        <h6 class="mb-2">Yêu cầu:</h6>
+                        <ul class="mb-0">
+                            <li>
+                                Thời gian: 
+                                <strong>{% if task.task_type == 1 %}20{% else %}40{% endif %} phút</strong>
+                            </li>
+                            <li>
+                                Số từ tối thiểu: 
+                                <strong>{% if task.task_type == 1 %}150{% else %}250{% endif %} từ</strong>
+                            </li>
+                            <li>Credits: <strong>1 credit</strong></li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Timer -->
+                    <div class="glass p-3 text-center">
+                        <h6 class="text-muted mb-2">Thời gian còn lại</h6>
+                        <h2 class="text-gradient mb-0" id="timer">
+                            {% if task.task_type == 1 %}20:00{% else %}40:00{% endif %}
+                        </h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Writing Panel -->
+        <div class="col-lg-7">
+            <form method="POST" action="{{ url_for('writing.task_submit', task_id=task.id) }}" id="essayForm">
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-pen"></i> Bài viết của bạn
+                        </h5>
+                        
+                        <div class="word-counter">
+                            <span class="badge bg-primary" id="wordCount">0 từ</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <textarea name="essay_text" 
+                                  id="essayText" 
+                                  class="form-control essay-textarea border-0" 
+                                  placeholder="Bắt đầu viết bài của bạn ở đây..."
+                                  required></textarea>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="d-flex gap-2 justify-content-between">
+                    <a href="{{ url_for('writing.task_' + (task.task_type|string) + '_list') }}" 
+                       class="btn btn-ghost">
+                        <i class="fas fa-arrow-left"></i> Quay lại
+                    </a>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-primary" onclick="saveToLocal()">
+                            <i class="fas fa-save"></i> Lưu nháp
+                        </button>
+                        
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-paper-plane"></i> 
+                            Nộp bài ({{ credit_cost }} credit)
+                        </button>
+                    </div>
+                </div>
+            </form>
+            
+            <!-- Info Alert -->
+            <div class="alert alert-info mt-3">
+                <i class="fas fa-lightbulb"></i>
+                <strong>Mẹo:</strong>
+                <ul class="mb-0 mt-2">
+                    <li>Bài viết của bạn sẽ được chấm điểm bởi AI theo 4 tiêu chí IELTS</li>
+                    <li>Bạn sẽ nhận được feedback chi tiết về điểm mạnh và điểm yếu</li>
+                    <li>Credits chỉ bị trừ khi bài viết đạt số từ tối thiểu</li>
+                    <li>Nhấn "Lưu nháp" để lưu bài viết vào trình duyệt</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Word counter
+    const essayText = document.getElementById('essayText');
+    const wordCount = document.getElementById('wordCount');
+    const submitBtn = document.getElementById('submitBtn');
+    const minWords = {{ 150 if task.task_type == 1 else 250 }};
+    
+    essayText.addEventListener('input', function() {
+        const text = this.value.trim();
+        const words = text ? text.split(/\s+/).length : 0;
+        
+        wordCount.textContent = words + ' từ';
+        
+        if (words < minWords) {
+            wordCount.classList.remove('bg-success');
+            wordCount.classList.add('bg-warning');
+            submitBtn.disabled = false; // Allow submit but will be validated server-side
+        } else {
+            wordCount.classList.remove('bg-warning');
+            wordCount.classList.add('bg-success');
+            submitBtn.disabled = false;
+        }
+    });
+    
+    // Timer
+    let timeLeft = {{ 1200 if task.task_type == 1 else 2400 }}; // seconds
+    const timerElement = document.getElementById('timer');
+    
+    const timerInterval = setInterval(() => {
+        timeLeft--;
+        
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        
+        timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeLeft <= 60) {
+            timerElement.classList.add('text-danger');
+        }
+        
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            alert('Hết giờ! Bạn vẫn có thể nộp bài.');
+        }
+    }, 1000);
+    
+    // Auto-save to localStorage
+    const storageKey = 'writing_task_{{ task.id }}';
+    
+    // Load from localStorage
+    const savedEssay = localStorage.getItem(storageKey);
+    if (savedEssay) {
+        if (confirm('Bạn có bài viết đã lưu. Muốn tiếp tục?')) {
+            essayText.value = savedEssay;
+            essayText.dispatchEvent(new Event('input'));
+        }
+    }
+    
+    // Save to localStorage
+    function saveToLocal() {
+        localStorage.setItem(storageKey, essayText.value);
+        alert('Đã lưu bài viết!');
+    }
+    
+    // Auto-save every 30 seconds
+    setInterval(() => {
+        if (essayText.value.trim()) {
+            localStorage.setItem(storageKey, essayText.value);
+        }
+    }, 30000);
+    
+    // Clear localStorage on submit
+    document.getElementById('essayForm').addEventListener('submit', function() {
+        localStorage.removeItem(storageKey);
+    });
+    
+    // Warn before leaving
+    window.addEventListener('beforeunload', function(e) {
+        if (essayText.value.trim()) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,223 @@
+<!-- app/templates/vocabulary/word_detail.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}{{ word.word }} - IELTS AI Platform{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="glass p-4 mb-4">
+                <a href="{{ url_for('vocabulary.topic_words', topic_id=word.topic_id) }}" 
+                   class="btn btn-ghost btn-sm mb-3">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+                
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h1 class="text-gradient mb-2">{{ word.word }}</h1>
+                        {% if word.pronunciation %}
+                        <h5 class="text-muted">
+                            <i class="fas fa-volume-up"></i> {{ word.pronunciation }}
+                        </h5>
+                        {% endif %}
+                    </div>
+                    
+                    {% if word.audio_url %}
+                    <button class="btn btn-primary" 
+                            onclick="playAudio('{{ url_for('static', filename='uploads/' + word.audio_url) }}')">
+                        <i class="fas fa-play"></i> Phát âm
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Word Info -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <!-- Badges -->
+                    <div class="mb-4">
+                        {% if word.part_of_speech %}
+                        <span class="badge bg-primary me-2">{{ word.part_of_speech }}</span>
+                        {% endif %}
+                        
+                        {% if word.level %}
+                        <span class="badge me-2" 
+                              style="background: {% if word.level == 'beginner' %}#10b981{% elif word.level == 'intermediate' %}#f59e0b{% else %}#ef4444{% endif %}">
+                            {{ word.level|upper }}
+                        </span>
+                        {% endif %}
+                        
+                        <span class="badge bg-secondary">
+                            Band {{ word.frequency_band }}+
+                        </span>
+                    </div>
+                    
+                    <!-- Image -->
+                    {% if word.image_url %}
+                    <img src="{{ url_for('static', filename='uploads/' + word.image_url) }}" 
+                         alt="{{ word.word }}" 
+                         class="img-fluid rounded mb-4"
+                         style="max-height: 300px; width: 100%; object-fit: cover;">
+                    {% endif %}
+                    
+                    <!-- Vietnamese Definition -->
+                    <div class="mb-4">
+                        <h5 class="mb-2">
+                            <i class="fas fa-language"></i> Nghĩa tiếng Việt
+                        </h5>
+                        <p class="mb-0">{{ word.definition_vi }}</p>
+                    </div>
+                    
+                    <!-- English Definition -->
+                    {% if word.definition_en %}
+                    <div class="mb-4">
+                        <h5 class="mb-2">
+                            <i class="fas fa-book-open"></i> English Definition
+                        </h5>
+                        <p class="mb-0 fst-italic">{{ word.definition_en }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Examples -->
+                    {% if word.example_sentences %}
+                    <div class="mb-4">
+                        <h5 class="mb-3">
+                            <i class="fas fa-quote-left"></i> Ví dụ
+                        </h5>
+                        <div class="list-group">
+                            {% for example in word.example_sentences %}
+                            <div class="list-group-item glass">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <span class="fst-italic">"{{ example }}"</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Synonyms -->
+                    {% if word.synonyms %}
+                    <div class="mb-4">
+                        <h5 class="mb-2">
+                            <i class="fas fa-equals"></i> Từ đồng nghĩa
+                        </h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for synonym in word.synonyms %}
+                            <span class="badge bg-info">{{ synonym }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Antonyms -->
+                    {% if word.antonyms %}
+                    <div class="mb-4">
+                        <h5 class="mb-2">
+                            <i class="fas fa-not-equal"></i> Từ trái nghĩa
+                        </h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for antonym in word.antonyms %}
+                            <span class="badge bg-warning">{{ antonym }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Progress -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="mb-3">
+                        <i class="fas fa-chart-line"></i> Tiến độ học
+                    </h5>
+                    
+                    {% if progress %}
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h6 class="text-muted">Trạng thái</h6>
+                            <p class="mb-0">
+                                {% if progress.status == 'mastered' %}
+                                <span class="badge bg-success">Đã thuộc</span>
+                                {% elif progress.status == 'learning' %}
+                                <span class="badge bg-warning">Đang học</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Mới</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        
+                        <div class="col-4">
+                            <h6 class="text-muted">Độ thành thạo</h6>
+                            <p class="mb-0">
+                                <strong>{{ progress.mastery_level }}/5</strong>
+                            </p>
+                        </div>
+                        
+                        <div class="col-4">
+                            <h6 class="text-muted">Lần ôn cuối</h6>
+                            <p class="mb-0 small">
+                                {% if progress.last_reviewed %}
+                                {{ progress.last_reviewed.strftime('%d/%m/%Y') }}
+                                {% else %}
+                                Chưa ôn
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="progress mt-3" style="height: 10px;">
+                        <div class="progress-bar" 
+                             style="width: {{ (progress.mastery_level / 5 * 100)|int }}%; 
+                                    background: linear-gradient(135deg, #a855f7, #ec4899);">
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center mb-3">Bạn chưa học từ này</p>
+                    {% endif %}
+                    
+                    <button class="btn btn-primary w-100 mt-3" onclick="markLearned({{ word.id }})">
+                        <i class="fas fa-check"></i> 
+                        {% if progress and progress.status != 'new' %}
+                        Ôn lại từ này
+                        {% else %}
+                        Đánh dấu đã học
+                        {% endif %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Audio Player (hidden) -->
+<audio id="audioPlayer" style="display: none;"></audio>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function playAudio(url) {
+        const audio = document.getElementById('audioPlayer');
+        audio.src = url;
+        audio.play();
+    }
+    
+    function markLearned(wordId) {
+        fetch(`/vocabulary/word/${wordId}/mark-learned`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,91 @@
+<!-- app/templates/admin/vocabulary/topics.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Vocabulary Topics - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="text-gradient mb-2">
+                            <i class="fas fa-book"></i> Vocabulary Topics
+                        </h1>
+                        <p class="text-muted mb-0">Quản lý chủ đề từ vựng</p>
+                    </div>
+                    <a href="{{ url_for('admin.vocabulary_topic_add') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Topic
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Topics Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Order</th>
+                                    <th>Icon</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Words</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for topic in topics %}
+                                <tr>
+                                    <td>{{ topic.order }}</td>
+                                    <td><i class="{{ topic.icon or 'fas fa-book' }}"></i></td>
+                                    <td><strong>{{ topic.name }}</strong></td>
+                                    <td><small>{{ topic.description[:50] }}...</small></td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ topic.word_count() }}</span>
+                                    </td>
+                                    <td>
+                                        {% if topic.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('admin.vocabulary_words', topic_id=topic.id) }}" 
+                                           class="btn btn-sm btn-ghost">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('admin.vocabulary_topic_edit', topic_id=topic.id) }}" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form method="POST" 
+                                              action="{{ url_for('admin.vocabulary_topic_delete', topic_id=topic.id) }}" 
+                                              style="display: inline;"
+                                              onsubmit="return confirm('Delete this topic and all its words?')">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

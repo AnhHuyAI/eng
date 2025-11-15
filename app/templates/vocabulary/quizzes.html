@@ -1,0 +1,92 @@
+<!-- app/templates/vocabulary/quizzes.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Bài kiểm tra từ vựng - IELTS AI Platform{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="text-gradient mb-2">
+                            <i class="fas fa-graduation-cap"></i> Bài kiểm tra từ vựng
+                        </h1>
+                        <p class="text-muted mb-0">Làm quiz để củng cố kiến thức đã học</p>
+                    </div>
+                    <a href="{{ url_for('vocabulary.index') }}" class="btn btn-ghost">
+                        <i class="fas fa-arrow-left"></i> Quay lại
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quizzes Grid -->
+    <div class="row">
+        {% for quiz in quizzes %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="module-icon vocabulary">
+                            <i class="fas fa-edit" style="color: white;"></i>
+                        </div>
+                        
+                        {% if quiz.difficulty %}
+                        <span class="badge" 
+                              style="background: {% if quiz.difficulty == 'easy' %}#10b981{% elif quiz.difficulty == 'medium' %}#f59e0b{% else %}#ef4444{% endif %}">
+                            {{ quiz.difficulty|upper }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <h5 class="mb-2">{{ quiz.title }}</h5>
+                    <p class="text-muted small mb-3">{{ quiz.description }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-primary">
+                            <i class="fas fa-question-circle"></i>
+                            {{ quiz.questions.count() }} câu hỏi
+                        </span>
+                        
+                        <span class="badge bg-secondary">
+                            <i class="fas fa-clock"></i>
+                            {{ quiz.time_limit }} phút
+                        </span>
+                    </div>
+                    
+                    {% if quiz.user_attempts > 0 %}
+                    <div class="glass p-3 mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="small text-muted">Lần làm:</span>
+                            <strong>{{ quiz.user_attempts }}</strong>
+                        </div>
+                        {% if quiz.user_best_score %}
+                        <div class="d-flex justify-content-between">
+                            <span class="small text-muted">Điểm cao nhất:</span>
+                            <strong class="text-success">{{ quiz.user_best_score|round(1) }}%</strong>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('vocabulary.quiz_start', quiz_id=quiz.id) }}" 
+                       class="btn btn-primary w-100">
+                        <i class="fas fa-play"></i> 
+                        {% if quiz.user_attempts > 0 %}
+                        Làm lại
+                        {% else %}
+                        Bắt đầu
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

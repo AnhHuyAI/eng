@@ -1,0 +1,65 @@
+<!-- app/templates/emails/payment_approved.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #10b981, #14b8a6);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f0fdf4;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+        .info-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✅ Thanh toán thành công!</h1>
+        </div>
+        <div class="content">
+            <p>Xin chào <strong>{{ user.full_name or user.email }}</strong>,</p>
+            
+            <p>Yêu cầu nạp tiền của bạn đã được xử lý thành công!</p>
+            
+            <div class="info-box">
+                <h3>📋 Chi tiết giao dịch:</h3>
+                <p><strong>Gói:</strong> {{ payment.package_id|upper }}</p>
+                <p><strong>Số tiền:</strong> {{ (payment.amount / 1000)|int }}K VNĐ</p>
+                <p><strong>Credits nhận được:</strong> {{ payment.credits_requested }}</p>
+                <p><strong>Thời gian:</strong> {{ payment.reviewed_at.strftime('%d/%m/%Y %H:%M') }}</p>
+            </div>
+            
+            <p>Credits đã được cộng vào tài khoản của bạn. Bạn có thể bắt đầu sử dụng ngay!</p>
+            
+            <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
+            
+            <p>Trân trọng,<br>
+            <strong>IELTS AI Team</strong></p>
+        </div>
+    </div>
+</body>
+</html>

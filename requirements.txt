@@ -1,0 +1,28 @@
+# requirements.txt
+
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.3
+Flask-Migrate==4.0.5
+PyMySQL==1.1.0
+cryptography==41.0.7
+
+# AI Services
+google-generativeai==0.3.2
+openai==1.6.1
+
+# Google Cloud (optional, for Google STT)
+google-cloud-speech==2.23.0
+
+# Document Processing
+python-docx==1.1.0
+openpyxl==3.1.2
+pypdf2==3.0.1
+reportlab==4.0.8
+
+# Email (optional)
+sendgrid==6.11.0
+
+# Utils
+python-dotenv==1.0.0
+Pillow==10.1.0

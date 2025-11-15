@@ -1,0 +1,272 @@
+<!-- app/templates/speaking/topic_practice.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Luyện Speaking Part {{ topic.part }} - IELTS AI Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .recording-indicator {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #ef4444;
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(1.2); }
+    }
+    
+    .audio-visualizer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        height: 60px;
+    }
+    
+    .audio-bar {
+        width: 4px;
+        background: var(--primary);
+        border-radius: 2px;
+        animation: audioWave 0.8s ease-in-out infinite;
+    }
+    
+    @keyframes audioWave {
+        0%, 100% { height: 10px; }
+        50% { height: 40px; }
+    }
+    
+    .audio-bar:nth-child(1) { animation-delay: 0s; }
+    .audio-bar:nth-child(2) { animation-delay: 0.1s; }
+    .audio-bar:nth-child(3) { animation-delay: 0.2s; }
+    .audio-bar:nth-child(4) { animation-delay: 0.3s; }
+    .audio-bar:nth-child(5) { animation-delay: 0.4s; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="glass p-4 mb-4">
+                <a href="{{ url_for('speaking.part_' + (topic.part|string) + '_topics') }}" 
+                   class="btn btn-ghost btn-sm mb-3">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+                <h1 class="text-gradient mb-2">
+                    <i class="fas fa-microphone"></i> Speaking Part {{ topic.part }}
+                </h1>
+                <p class="text-muted mb-0">{{ topic.topic }}</p>
+            </div>
+            
+            <!-- Topic Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-question-circle"></i> 
+                        {% if topic.part == 1 %}Questions{% elif topic.part == 2 %}Cue Card{% else %}Discussion Topics{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if topic.part == 1 and topic.part1_questions %}
+                        <div class="glass p-4">
+                            {% for question in topic.part1_questions %}
+                            <p class="mb-2">
+                                <i class="fas fa-chevron-right text-primary"></i>
+                                {{ question }}
+                            </p>
+                            {% endfor %}
+                        </div>
+                    {% elif topic.part == 2 %}
+                        <div class="glass p-4">
+                            <h6 class="mb-3">{{ topic.cue_card_title }}</h6>
+                            {% if topic.cue_card_points %}
+                            <p class="mb-2"><strong>You should say:</strong></p>
+                            <ul>
+                                {% for point in topic.cue_card_points %}
+                                <li>{{ point }}</li>
+                                {% endfor %}
+                            </ul>
+                            <p class="mt-3 mb-0 text-muted small">
+                                <i class="fas fa-info-circle"></i>
+                                You will have 1 minute to prepare and 2 minutes to speak.
+                            </p>
+                            {% endif %}
+                        </div>
+                    {% elif topic.part == 3 and topic.part3_questions %}
+                        <div class="glass p-4">
+                            {% for question in topic.part3_questions %}
+                            <p class="mb-2">
+                                <i class="fas fa-chevron-right text-primary"></i>
+                                {{ question }}
+                            </p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Recording Interface -->
+            <div class="card mb-4">
+                <div class="card-body text-center p-5">
+                    <div id="recordingStatus" class="mb-4">
+                        <h5 class="text-muted">Sẵn sàng thu âm</h5>
+                    </div>
+                    
+                    <!-- Audio Visualizer (hidden initially) -->
+                    <div id="audioVisualizer" class="audio-visualizer mb-4" style="display: none;">
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                    </div>
+                    
+                    <!-- Timer -->
+                    <h2 class="text-gradient mb-4" id="timer">00:00</h2>
+                    
+                    <!-- Recording Button -->
+                    <button id="recordBtn" class="btn btn-primary btn-lg px-5" onclick="toggleRecording()">
+                        <i class="fas fa-microphone"></i> Bắt đầu thu âm
+                    </button>
+                    
+                    <!-- Stop Button (hidden) -->
+                    <button id="stopBtn" class="btn btn-danger btn-lg px-5" onclick="stopRecording()" style="display: none;">
+                        <i class="fas fa-stop"></i> Dừng thu âm
+                    </button>
+                    
+                    <!-- Audio Player (hidden) -->
+                    <div id="audioPlayer" style="display: none;" class="mt-4">
+                        <audio id="recordedAudio" controls class="w-100"></audio>
+                        <button class="btn btn-outline-primary mt-3" onclick="resetRecording()">
+                            <i class="fas fa-redo"></i> Thu lại
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Submit Form -->
+            <form id="submitForm" method="POST" action="{{ url_for('speaking.topic_submit', topic_id=topic.id) }}" 
+                  enctype="multipart/form-data" style="display: none;">
+                <input type="hidden" name="duration" id="durationInput">
+                <input type="file" name="audio_file" id="audioFileInput" style="display: none;">
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Thông tin:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Bài nói của bạn sẽ được chuyển thành text bằng AI</li>
+                        <li>Sau đó được chấm điểm theo 4 tiêu chí IELTS</li>
+                        <li>Mất 2 credits cho mỗi bài nộp</li>
+                    </ul>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100" id="submitBtn">
+                    <i class="fas fa-paper-plane"></i> Nộp bài ({{ credit_cost }} credits)
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let mediaRecorder;
+    let audioChunks = [];
+    let startTime;
+    let timerInterval;
+    let audioBlob;
+    
+    async function toggleRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+            
+            mediaRecorder.onstop = () => {
+                audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                
+                document.getElementById('recordedAudio').src = audioUrl;
+                document.getElementById('audioPlayer').style.display = 'block';
+                document.getElementById('submitForm').style.display = 'block';
+                
+                // Convert to File and set to input
+                const file = new File([audioBlob], 'recording.webm', { type: 'audio/webm' });
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                document.getElementById('audioFileInput').files = dataTransfer.files;
+            };
+            
+            // Start recording
+            audioChunks = [];
+            mediaRecorder.start();
+            startTime = Date.now();
+            
+            // Update UI
+            document.getElementById('recordBtn').style.display = 'none';
+            document.getElementById('stopBtn').style.display = 'inline-block';
+            document.getElementById('audioVisualizer').style.display = 'flex';
+            document.getElementById('recordingStatus').innerHTML = `
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                    <div class="recording-indicator"></div>
+                    <h5 class="text-danger mb-0">Đang thu âm...</h5>
+                </div>
+            `;
+            
+            // Start timer
+            timerInterval = setInterval(updateTimer, 1000);
+            
+        } catch (error) {
+            alert('Không thể truy cập microphone. Vui lòng cho phép quyền truy cập.');
+            console.error('Error:', error);
+        }
+    }
+    
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            clearInterval(timerInterval);
+            
+            // Calculate duration
+            const duration = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('durationInput').value = duration;
+            
+            // Update UI
+            document.getElementById('stopBtn').style.display = 'none';
+            document.getElementById('audioVisualizer').style.display = 'none';
+            document.getElementById('recordingStatus').innerHTML = `
+                <h5 class="text-success">
+                    <i class="fas fa-check-circle"></i> Hoàn thành!
+                </h5>
+            `;
+        }
+    }
+    
+    function updateTimer() {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        document.getElementById('timer').textContent = 
+            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    function resetRecording() {
+        document.getElementById('recordBtn').style.display = 'inline-block';
+        document.getElementById('audioPlayer').style.display = 'none';
+        document.getElementById('submitForm').style.display = 'none';
+        document.getElementById('timer').textContent = '00:00';
+        document.getElementById('recordingStatus').innerHTML = '<h5 class="text-muted">Sẵn sàng thu âm</h5>';
+        audioChunks = [];
+    }
+</script>
+{% endblock %}

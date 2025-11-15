@@ -1,0 +1,243 @@
+<!-- app/templates/speaking/submission_result.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Kết quả Speaking - IELTS AI Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .score-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: conic-gradient(
+            var(--primary) calc(var(--score) * 11.11%), 
+            var(--bg-secondary) 0
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        margin: 0 auto;
+    }
+    
+    .score-circle::before {
+        content: '';
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: var(--bg-glass);
+        position: absolute;
+    }
+    
+    .score-value {
+        position: relative;
+        z-index: 1;
+        font-size: 2rem;
+        font-weight: 700;
+    }
+    
+    .transcript-box {
+        max-height: 400px;
+        overflow-y: auto;
+        line-height: 1.8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="glass p-4 mb-4 text-center">
+                <h1 class="text-gradient mb-2">
+                    <i class="fas fa-check-circle"></i> Kết quả Speaking
+                </h1>
+                <p class="text-muted mb-0">
+                    Speaking Part {{ submission.part }} - 
+                    {{ submission.created_at.strftime('%d/%m/%Y %H:%M') }}
+                </p>
+            </div>
+            
+            <!-- Overall Score -->
+            <div class="card mb-4">
+                <div class="card-body p-5 text-center">
+                    <h4 class="mb-4">Overall Band Score</h4>
+                    <div class="score-circle" style="--score: {{ submission.overall_band }}">
+                        <span class="score-value text-gradient">{{ submission.overall_band }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Criteria Scores -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="glass p-4 text-center h-100">
+                        <h6 class="text-muted mb-2">Fluency & Coherence</h6>
+                        <h2 class="text-gradient mb-0">{{ submission.fluency_coherence }}</h2>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                    <div class="glass p-4 text-center h-100">
+                        <h6 class="text-muted mb-2">Lexical Resource</h6>
+                        <h2 class="text-gradient mb-0">{{ submission.lexical_resource }}</h2>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                    <div class="glass p-4 text-center h-100">
+                        <h6 class="text-muted mb-2">Grammar Accuracy</h6>
+                        <h2 class="text-gradient mb-0">{{ submission.grammar_accuracy }}</h2>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                    <div class="glass p-4 text-center h-100">
+                        <h6 class="text-muted mb-2">Pronunciation</h6>
+                        <h2 class="text-gradient mb-0">{{ submission.pronunciation }}</h2>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Metrics -->
+            {% if submission.detailed_feedback.metrics %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar"></i> Số liệu phân tích
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <div class="glass p-3">
+                                <h6 class="text-muted mb-2">Thời lượng</h6>
+                                <h4 class="mb-0">{{ submission.duration }}s</h4>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <div class="glass p-3">
+                                <h6 class="text-muted mb-2">Words/Minute</h6>
+                                <h4 class="mb-0">{{ submission.words_per_minute }}</h4>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <div class="glass p-3">
+                                <h6 class="text-muted mb-2">Hesitations</h6>
+                                <h4 class="mb-0">{{ submission.hesitation_count }}</h4>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <div class="glass p-3">
+                                <h6 class="text-muted mb-2">Repetitions</h6>
+                                <h4 class="mb-0">{{ submission.repetition_count }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Transcript -->
+            {% if submission.transcript %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-alt"></i> Transcript (Bản ghi âm)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="glass p-4 transcript-box">
+                        <p style="white-space: pre-wrap;">{{ submission.transcript }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Audio Playback -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-play-circle"></i> Nghe lại bài nói
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <audio controls class="w-100">
+                        <source src="{{ url_for('static', filename='uploads/' + submission.audio_url) }}" type="audio/webm">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+            </div>
+            
+            <!-- Detailed Feedback -->
+            {% for criterion_name, criterion_data in submission.detailed_feedback.items() %}
+                {% if criterion_name not in ['overall_band', 'metrics'] %}
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-star"></i> 
+                            {{ criterion_name.replace('_', ' ')|title }}
+                            - Band {{ criterion_data.score }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Strengths -->
+                        <div class="mb-4">
+                            <h6 class="text-success mb-3">
+                                <i class="fas fa-check-circle"></i> Điểm mạnh
+                            </h6>
+                            <ul class="list-unstyled">
+                                {% for strength in criterion_data.strengths %}
+                                <li class="glass p-3 mb-2">
+                                    <i class="fas fa-plus-circle text-success"></i>
+                                    {{ strength }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
+                        <!-- Suggestions -->
+                        <div>
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-lightbulb"></i> Gợi ý cải thiện
+                            </h6>
+                            <ul class="list-unstyled">
+                                {% for suggestion in criterion_data.suggestions %}
+                                <li class="glass p-3 mb-2">
+                                    <i class="fas fa-arrow-right text-primary"></i>
+                                    {{ suggestion }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+            
+            <!-- Actions -->
+            <div class="d-flex gap-2 justify-content-center">
+                <a href="{{ url_for('speaking.topic_practice', topic_id=topic.id) }}" 
+                   class="btn btn-primary">
+                    <i class="fas fa-redo"></i> Làm lại topic này
+                </a>
+                
+                <a href="{{ url_for('speaking.part_' + (submission.part|string) + '_topics') }}" 
+                   class="btn btn-outline-primary">
+                    <i class="fas fa-list"></i> Chọn topic khác
+                </a>
+                
+                <a href="{{ url_for('speaking.history') }}" 
+                   class="btn btn-ghost">
+                    <i class="fas fa-history"></i> Xem lịch sử
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

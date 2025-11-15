@@ -1,0 +1,149 @@
+<!-- app/templates/admin/payments/pending.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Pending Payments - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass p-4">
+                <h1 class="text-gradient mb-2">
+                    <i class="fas fa-money-bill-wave"></i> Yêu cầu nạp tiền chờ duyệt
+                </h1>
+                <p class="text-muted mb-0">Xem và duyệt các yêu cầu nạp tiền</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Payments Table -->
+    {% if payments %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>User</th>
+                                    <th>Gói</th>
+                                    <th>Số tiền</th>
+                                    <th>Credits</th>
+                                    <th>Phương thức</th>
+                                    <th>Thời gian</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in payments %}
+                                <tr>
+                                    <td>#{{ payment.id }}</td>
+                                    <td>
+                                        <a href="{{ url_for('admin.user_detail', user_id=payment.user_id) }}">
+                                            {{ payment.user.email }}
+                                        </a>
+                                    </td>
+                                    <td>{{ payment.package_id|upper }}</td>
+                                    <td><strong>{{ (payment.amount / 1000)|int }}K VNĐ</strong></td>
+                                    <td>
+                                        <i class="fas fa-coins text-primary"></i>
+                                        {{ payment.credits_requested }}
+                                    </td>
+                                    <td>
+                                        {% if payment.payment_method == 'bank_transfer' %}
+                                            <i class="fas fa-university"></i> Bank
+                                        {% else %}
+                                            <i class="fas fa-mobile-alt"></i> Momo
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ payment.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('payment.view_request', request_id=payment.id) }}" 
+                                               class="btn btn-sm btn-ghost" 
+                                               target="_blank">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            
+                                            <form method="POST" 
+                                                  action="{{ url_for('admin.payment_approve', payment_id=payment.id) }}" 
+                                                  style="display: inline;"
+                                                  onsubmit="return confirm('Xác nhận duyệt thanh toán này?')">
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                            
+                                            <button class="btn btn-sm btn-danger" 
+                                                    onclick="showRejectModal({{ payment.id }})">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="glass p-5 text-center">
+                <i class="fas fa-check-circle" style="font-size: 4rem; color: var(--text-success);"></i>
+                <h4 class="mt-4 mb-3">Không có yêu cầu nào đang chờ</h4>
+                <p class="text-muted mb-0">Tất cả yêu cầu đã được xử lý</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content glass">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Từ chối yêu cầu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="rejectForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Lý do từ chối:</label>
+                        <textarea name="reason" class="form-control" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">Từ chối</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let rejectModal;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        rejectModal = new bootstrap.Modal(document.getElementById('rejectModal'));
+    });
+    
+    function showRejectModal(paymentId) {
+        document.getElementById('rejectForm').action = `/admin/payments/${paymentId}/reject`;
+        rejectModal.show();
+    }
+</script>
+{% endblock %}

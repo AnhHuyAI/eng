@@ -1,0 +1,111 @@
+<!-- app/templates/listening/sections.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Listening Sections - IELTS AI Platform{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass p-4">
+                <a href="{{ url_for('listening.index') }}" class="btn btn-ghost btn-sm mb-3">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+                <h1 class="text-gradient mb-2">
+                    <i class="fas fa-headphones"></i> Listening Sections
+                </h1>
+                <p class="text-muted mb-0">Chọn một section để bắt đầu luyện nghe</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filter -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <select class="form-select" onchange="window.location.href='{{ url_for('listening.sections') }}?part=' + this.value">
+                <option value="">Tất cả Parts</option>
+                <option value="1" {% if request.args.get('part') == '1' %}selected{% endif %}>Part 1</option>
+                <option value="2" {% if request.args.get('part') == '2' %}selected{% endif %}>Part 2</option>
+                <option value="3" {% if request.args.get('part') == '3' %}selected{% endif %}>Part 3</option>
+                <option value="4" {% if request.args.get('part') == '4' %}selected{% endif %}>Part 4</option>
+            </select>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <select class="form-select" onchange="window.location.href='{{ url_for('listening.sections') }}?difficulty=' + this.value">
+                <option value="">Tất cả độ khó</option>
+                <option value="easy" {% if request.args.get('difficulty') == 'easy' %}selected{% endif %}>Easy</option>
+                <option value="medium" {% if request.args.get('difficulty') == 'medium' %}selected{% endif %}>Medium</option>
+                <option value="hard" {% if request.args.get('difficulty') == 'hard' %}selected{% endif %}>Hard</option>
+            </select>
+        </div>
+    </div>
+    
+    <!-- Sections Grid -->
+    <div class="row">
+        {% for section in sections %}
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge bg-primary">Part {{ section.part_number }}</span>
+                        
+                        {% if section.difficulty %}
+                        <span class="badge" 
+                              style="background: {% if section.difficulty == 'easy' %}#10b981{% elif section.difficulty == 'medium' %}#f59e0b{% else %}#ef4444{% endif %}">
+                            {{ section.difficulty|upper }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <h5 class="mb-3">{{ section.title }}</h5>
+                    
+                    {% if section.description %}
+                    <p class="text-muted small mb-3">{{ section.description }}</p>
+                    {% endif %}
+                    
+                    {% if section.topic %}
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <i class="fas fa-tag"></i> Chủ đề: <strong>{{ section.topic }}</strong>
+                        </small>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-success me-2">
+                                <i class="fas fa-gift"></i> MIỄN PHÍ
+                            </span>
+                            <small class="text-muted">
+                                <i class="fas fa-question-circle"></i>
+                                {{ section.questions.count() }} câu hỏi
+                            </small>
+                        </div>
+                        
+                        <a href="{{ url_for('listening.section_practice', section_id=section.id) }}" 
+                           class="btn btn-primary">
+                            <i class="fas fa-play"></i> Làm bài
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if not sections %}
+    <div class="row">
+        <div class="col-12">
+            <div class="glass p-5 text-center">
+                <i class="fas fa-inbox" style="font-size: 4rem; color: var(--text-muted);"></i>
+                <h4 class="mt-4 mb-3">Không tìm thấy section nào</h4>
+                <p class="text-muted mb-0">Thử thay đổi bộ lọc để xem thêm</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,397 @@
+<!-- app/templates/payment/packages.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Nạp Credits - IELTS AI Platform{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass p-4 text-center">
+                <h1 class="text-gradient mb-2">
+                    <i class="fas fa-coins"></i> Nạp Credits
+                </h1>
+                <p class="text-muted mb-0">Chọn gói phù hợp với nhu cầu của bạn</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Current Credits -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass p-4 text-center">
+                <h5 class="text-muted mb-2">Số dư hiện tại</h5>
+                <h2 class="text-gradient mb-0">
+                    <i class="fas fa-wallet"></i> {{ current_user.credits }} Credits
+                </h2>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pricing Packages -->
+    <div class="row mb-5">
+        {% for package_id, package in packages.items() %}
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100 {% if package.get('popular') %}border-3{% endif %}" 
+                 style="{% if package.get('popular') %}border-color: var(--primary);{% endif %}">
+                {% if package.get('popular') %}
+                <div class="position-absolute top-0 start-50 translate-middle">
+                    <span class="badge" style="background: linear-gradient(135deg, var(--primary), var(--secondary));">
+                        PHỔ BIẾN
+                    </span>
+                </div>
+                {% endif %}
+                
+                <div class="card-body text-center p-4">
+                    <h4 class="mb-3">{{ package.name }}</h4>
+                    
+                    <div class="mb-4">
+                        <h2 class="text-gradient mb-0">{{ (package.price / 1000)|int }}K</h2>
+                        <small class="text-muted">VNĐ</small>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+                            <i class="fas fa-coins text-gradient" style="font-size: 1.5rem;"></i>
+                            <h3 class="mb-0">{{ package.credits }}</h3>
+                        </div>
+                        <small class="text-muted">Credits</small>
+                    </div>
+                    
+                    <p class="text-muted small mb-4">{{ package.description }}</p>
+                    
+                    {% if package.credits > package.price / 1000 %}
+                    <div class="alert alert-success py-2 mb-3">
+                        <i class="fas fa-gift"></i> 
+                        Tiết kiệm {{ ((package.credits - package.price / 1000) / (package.price / 1000) * 100)|int }}%
+                    </div>
+                    {% endif %}
+                    
+                    <button class="btn btn-primary w-100" 
+                            onclick="selectPackage('{{ package_id }}', '{{ package.name }}', {{ package.price }}, {{ package.credits }})">
+                        <i class="fas fa-shopping-cart"></i> Chọn gói này
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Payment Modal -->
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content glass" style="border: 1px solid var(--border-color);">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-gradient">
+                        <i class="fas fa-credit-card"></i> Thông tin thanh toán
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                
+                <form method="POST" action="{{ url_for('payment.create_request') }}" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <!-- Package Info -->
+                        <div class="glass p-3 mb-4">
+                            <div class="row">
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Gói đã chọn</small>
+                                    <strong id="selectedPackageName"></strong>
+                                </div>
+                                <div class="col-3">
+                                    <small class="text-muted d-block">Số tiền</small>
+                                    <strong id="selectedPackagePrice"></strong>
+                                </div>
+                                <div class="col-3">
+                                    <small class="text-muted d-block">Credits</small>
+                                    <strong id="selectedPackageCredits"></strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <input type="hidden" name="package_id" id="packageId">
+                        
+                        <!-- Payment Method -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-university"></i> Phương thức thanh toán
+                            </label>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <input type="radio" class="btn-check" name="payment_method" 
+                                           id="bank_transfer" value="bank_transfer" checked>
+                                    <label class="btn btn-outline-primary w-100 py-3" for="bank_transfer">
+                                        <i class="fas fa-university fa-2x mb-2 d-block"></i>
+                                        <strong>Chuyển khoản ngân hàng</strong>
+                                    </label>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <input type="radio" class="btn-check" name="payment_method" 
+                                           id="momo" value="momo">
+                                    <label class="btn btn-outline-primary w-100 py-3" for="momo">
+                                        <i class="fas fa-mobile-alt fa-2x mb-2 d-block"></i>
+                                        <strong>Ví Momo</strong>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Bank Transfer Info -->
+                        <div id="bankInfo" class="glass p-4 mb-4">
+                            <h6 class="mb-3">
+                                <i class="fas fa-info-circle"></i> Thông tin chuyển khoản
+                            </h6>
+                            
+                            <div class="row mb-2">
+                                <div class="col-4 text-muted">Ngân hàng:</div>
+                                <div class="col-8">
+                                    <strong>{{ bank_info.bank_name }}</strong>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-2">
+                                <div class="col-4 text-muted">Số tài khoản:</div>
+                                <div class="col-8">
+                                    <strong>{{ bank_info.account_number }}</strong>
+                                    <button type="button" class="btn btn-sm btn-ghost ms-2" 
+                                            onclick="copyToClipboard('{{ bank_info.account_number }}')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-2">
+                                <div class="col-4 text-muted">Chủ tài khoản:</div>
+                                <div class="col-8">
+                                    <strong>{{ bank_info.account_name }}</strong>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-4 text-muted">Nội dung:</div>
+                                <div class="col-8">
+                                    <code class="p-2 rounded" style="background: var(--bg-secondary);">
+                                        IELTS {{ current_user.email }}
+                                    </code>
+                                    <button type="button" class="btn btn-sm btn-ghost ms-2" 
+                                            onclick="copyToClipboard('IELTS {{ current_user.email }}')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Momo Info -->
+                        <div id="momoInfo" class="glass p-4 mb-4" style="display: none;">
+                            <h6 class="mb-3">
+                                <i class="fas fa-info-circle"></i> Thông tin Momo
+                            </h6>
+                            
+                            <div class="row mb-2">
+                                <div class="col-4 text-muted">Số điện thoại:</div>
+                                <div class="col-8">
+                                    <strong>{{ bank_info.momo_phone }}</strong>
+                                    <button type="button" class="btn btn-sm btn-ghost ms-2" 
+                                            onclick="copyToClipboard('{{ bank_info.momo_phone }}')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-4 text-muted">Tên:</div>
+                                <div class="col-8">
+                                    <strong>{{ bank_info.momo_name }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Upload Proof -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-camera"></i> Upload ảnh chứng từ thanh toán *
+                            </label>
+                            <input type="file" class="form-control" name="proof_image" 
+                                   accept="image/*" required>
+                            <small class="text-muted">
+                                Chụp ảnh màn hình giao dịch thành công
+                            </small>
+                        </div>
+                        
+                        <!-- Transaction ID (optional) -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-hashtag"></i> Mã giao dịch (nếu có)
+                            </label>
+                            <input type="text" class="form-control" name="transaction_id" 
+                                   placeholder="VD: 123456789">
+                        </div>
+                        
+                        <!-- Note -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-comment"></i> Ghi chú (optional)
+                            </label>
+                            <textarea class="form-control" name="transfer_note" rows="2" 
+                                      placeholder="Ghi chú thêm về giao dịch..."></textarea>
+                        </div>
+                        
+                        <!-- Info Alert -->
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Lưu ý:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Yêu cầu của bạn sẽ được xử lý trong <strong>15-30 phút</strong> (giờ hành chính)</li>
+                                <li>Credits sẽ được cộng vào tài khoản sau khi admin xác nhận</li>
+                                <li>Bạn sẽ nhận email thông báo khi thanh toán được duyệt</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">
+                            Hủy
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Gửi yêu cầu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- How it works -->
+    <div class="row">
+        <div class="col-12">
+            <div class="glass p-4">
+                <h5 class="mb-4">
+                    <i class="fas fa-question-circle"></i> Credits được dùng như thế nào?
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex gap-3">
+                            <div class="module-icon vocabulary" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                                <i class="fas fa-book" style="color: white;"></i>
+                            </div>
+                            <div>
+                                <h6>Từ vựng & Quiz</h6>
+                                <p class="text-muted mb-0 small">
+                                    <strong class="text-success">MIỄN PHÍ</strong> - Không tốn credits
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex gap-3">
+                            <div class="module-icon listening" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                                <i class="fas fa-headphones" style="color: white;"></i>
+                            </div>
+                            <div>
+                                <h6>Listening</h6>
+                                <p class="text-muted mb-0 small">
+                                    <strong class="text-success">MIỄN PHÍ</strong> - Chấm tự động
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex gap-3">
+                            <div class="module-icon reading" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                                <i class="fas fa-book-reader" style="color: white;"></i>
+                            </div>
+                            <div>
+                                <h6>Reading</h6>
+                                <p class="text-muted mb-0 small">
+                                    <strong class="text-success">MIỄN PHÍ</strong> - Chấm tự động
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex gap-3">
+                            <div class="module-icon writing" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                                <i class="fas fa-pen" style="color: white;"></i>
+                            </div>
+                            <div>
+                                <h6>Writing (Task 1 & 2)</h6>
+                                <p class="text-muted mb-0 small">
+                                    <strong class="text-primary">1 CREDIT/bài</strong> - Chấm bằng AI
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex gap-3">
+                            <div class="module-icon speaking" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                                <i class="fas fa-microphone" style="color: white;"></i>
+                            </div>
+                            <div>
+                                <h6>Speaking (Part 1, 2, 3)</h6>
+                                <p class="text-muted mb-0 small">
+                                    <strong class="text-primary">2 CREDITS/bài</strong> - STT + AI
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let paymentModal;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+        
+        // Toggle payment info
+        document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'bank_transfer') {
+                    document.getElementById('bankInfo').style.display = 'block';
+                    document.getElementById('momoInfo').style.display = 'none';
+                } else {
+                    document.getElementById('bankInfo').style.display = 'none';
+                    document.getElementById('momoInfo').style.display = 'block';
+                }
+            });
+        });
+    });
+    
+    function selectPackage(packageId, packageName, price, credits) {
+        document.getElementById('packageId').value = packageId;
+        document.getElementById('selectedPackageName').textContent = packageName;
+        document.getElementById('selectedPackagePrice').textContent = (price / 1000).toFixed(0) + 'K VNĐ';
+        document.getElementById('selectedPackageCredits').textContent = credits + ' credits';
+        
+        paymentModal.show();
+    }
+    
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            // Show toast notification
+            const toast = document.createElement('div');
+            toast.className = 'alert alert-success position-fixed top-0 start-50 translate-middle-x mt-3';
+            toast.style.zIndex = '9999';
+            toast.innerHTML = '<i class="fas fa-check-circle"></i> Đã copy!';
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 2000);
+        });
+    }
+</script>
+{% endblock %}

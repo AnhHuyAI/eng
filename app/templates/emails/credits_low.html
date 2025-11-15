@@ -1,0 +1,68 @@
+<!-- app/templates/emails/credits_low.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #fffbeb;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚠️ Credits sắp hết!</h1>
+        </div>
+        <div class="content">
+            <p>Xin chào <strong>{{ user.full_name or user.email }}</strong>,</p>
+            
+            <p>Credits trong tài khoản của bạn đang sắp hết!</p>
+            
+            <p>Số credits hiện tại: <strong>{{ user.credits }}</strong></p>
+            
+            <p>Để tiếp tục sử dụng các tính năng Writing và Speaking với AI scoring, vui lòng nạp thêm credits.</p>
+            
+            <center>
+                <a href="https://ielts-platform.com/payment/packages" class="button">
+                    Nạp Credits Ngay
+                </a>
+            </center>
+            
+            <p><em>Lưu ý: Listening và Reading vẫn hoàn toàn miễn phí!</em></p>
+            
+            <p>Trân trọng,<br>
+            <strong>IELTS AI Team</strong></p>
+        </div>
+    </div>
+</body>
+</html>

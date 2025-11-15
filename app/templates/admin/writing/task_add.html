@@ -1,0 +1,127 @@
+<!-- app/templates/admin/writing/task_add.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Add Writing Task - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="glass p-4 mb-4">
+                <a href="{{ url_for('admin.writing_tasks') }}" class="btn btn-ghost btn-sm mb-3">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+                <h1 class="text-gradient mb-2">
+                    <i class="fas fa-plus"></i> Add Writing Task
+                </h1>
+            </div>
+            
+            <!-- Form -->
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-4">
+                            <label class="form-label">Task Type *</label>
+                            <select name="task_type" class="form-select" id="taskTypeSelect" required>
+                                <option value="1">Task 1 (Describe chart/graph)</option>
+                                <option value="2">Task 2 (Essay)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Task 1 Specific -->
+                        <div id="task1Fields" style="display: none;">
+                            <div class="mb-4">
+                                <label class="form-label">Chart Type</label>
+                                <select name="chart_type" class="form-select">
+                                    <option value="bar_chart">Bar Chart</option>
+                                    <option value="line_graph">Line Graph</option>
+                                    <option value="pie_chart">Pie Chart</option>
+                                    <option value="table">Table</option>
+                                    <option value="map">Map</option>
+                                    <option value="process">Process</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">Chart Image</label>
+                                <input type="file" name="chart_image" class="form-control" accept="image/*">
+                            </div>
+                        </div>
+                        
+                        <!-- Task 2 Specific -->
+                        <div id="task2Fields" style="display: none;">
+                            <div class="mb-4">
+                                <label class="form-label">Topic</label>
+                                <input type="text" name="topic" class="form-control" 
+                                       placeholder="e.g., Education, Technology">
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">Essay Type</label>
+                                <select name="essay_type" class="form-select">
+                                    <option value="opinion">Opinion</option>
+                                    <option value="discussion">Discussion</option>
+                                    <option value="problem_solution">Problem & Solution</option>
+                                    <option value="advantages_disadvantages">Advantages & Disadvantages</option>
+                                    <option value="two_part">Two-part Question</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Question Text *</label>
+                            <textarea name="question_text" class="form-control" rows="5" required></textarea>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Instructions</label>
+                            <textarea name="instructions" class="form-control" rows="3" 
+                                      placeholder="Additional instructions for candidates..."></textarea>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Difficulty</label>
+                            <select name="difficulty" class="form-select">
+                                <option value="easy">Easy</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('admin.writing_tasks') }}" class="btn btn-ghost">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary flex-grow-1">
+                                <i class="fas fa-save"></i> Create Task
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('taskTypeSelect').addEventListener('change', function() {
+        const taskType = this.value;
+        
+        document.getElementById('task1Fields').style.display = 'none';
+        document.getElementById('task2Fields').style.display = 'none';
+        
+        if (taskType === '1') {
+            document.getElementById('task1Fields').style.display = 'block';
+        } else {
+            document.getElementById('task2Fields').style.display = 'block';
+        }
+    });
+    
+    // Trigger on load
+    document.getElementById('taskTypeSelect').dispatchEvent(new Event('change'));
+</script>
+{% endblock %}

@@ -1,0 +1,85 @@
+<!-- app/templates/admin/reading/questions.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Reading Questions - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass p-4">
+                <a href="{{ url_for('admin.reading_passages') }}" class="btn btn-ghost btn-sm mb-3">
+                    <i class="fas fa-arrow-left"></i> Back to Passages
+                </a>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="text-gradient mb-2">
+                            <i class="fas fa-question-circle"></i> Questions
+                        </h1>
+                        <p class="text-muted mb-0">{{ passage.title }}</p>
+                    </div>
+                    <a href="{{ url_for('admin.reading_question_add', passage_id=passage.id) }}" 
+                       class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Question
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if questions %}
+    <div class="row">
+        {% for question in questions %}
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="badge bg-primary" style="font-size: 1rem;">Q{{ question.question_number }}</div>
+                        <span class="badge bg-secondary">{{ question.question_type|upper }}</span>
+                    </div>
+                    
+                    {% if question.paragraph_reference %}
+                    <span class="badge bg-info mb-2">Paragraph {{ question.paragraph_reference }}</span>
+                    {% endif %}
+                    
+                    <p class="mb-3">{{ question.question_text }}</p>
+                    
+                    {% if question.options %}
+                    <div class="glass p-3 mb-3">
+                        <small class="text-muted d-block mb-2">Options:</small>
+                        {% for option in question.options %}
+                        <div>• {{ option }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="glass p-3 mb-3">
+                        <small class="text-muted">Correct Answer:</small>
+                        <strong class="d-block text-success">{{ question.correct_answer }}</strong>
+                    </div>
+                    
+                    <form method="POST" 
+                          action="{{ url_for('admin.reading_question_delete', question_id=question.id) }}" 
+                          onsubmit="return confirm('Delete this question?')">
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="glass p-5 text-center">
+        <i class="fas fa-inbox" style="font-size: 4rem; color: var(--text-muted);"></i>
+        <h4 class="mt-4 mb-3">No questions yet</h4>
+        <a href="{{ url_for('admin.reading_question_add', passage_id=passage.id) }}" 
+           class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add First Question
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

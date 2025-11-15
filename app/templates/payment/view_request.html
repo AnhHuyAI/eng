@@ -1,0 +1,142 @@
+<!-- app/templates/payment/view_request.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Chi tiết yêu cầu nạp tiền - IELTS AI Platform{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="glass p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="text-gradient mb-0">
+                        <i class="fas fa-receipt"></i> Chi tiết yêu cầu
+                    </h2>
+                    <a href="{{ url_for('payment.history') }}" class="btn btn-ghost">
+                        <i class="fas fa-arrow-left"></i> Quay lại
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Request Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i> Thông tin giao dịch
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">Trạng thái:</div>
+                        <div class="col-8">
+                            {% if payment.status == 'pending' %}
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-clock"></i> Chờ duyệt
+                                </span>
+                            {% elif payment.status == 'approved' %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle"></i> Đã duyệt
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-times-circle"></i> Từ chối
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">Gói:</div>
+                        <div class="col-8">
+                            <strong>{{ payment.package_id|upper }}</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">Số tiền:</div>
+                        <div class="col-8">
+                            <strong>{{ (payment.amount / 1000)|int }}K VNĐ</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">Credits:</div>
+                        <div class="col-8">
+                            <i class="fas fa-coins text-primary"></i>
+                            <strong>{{ payment.credits_requested }}</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">Phương thức:</div>
+                        <div class="col-8">
+                            {% if payment.payment_method == 'bank_transfer' %}
+                                <i class="fas fa-university"></i> Chuyển khoản ngân hàng
+                            {% else %}
+                                <i class="fas fa-mobile-alt"></i> Ví Momo
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if payment.transaction_id %}
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">Mã GD:</div>
+                        <div class="col-8">
+                            <code>{{ payment.transaction_id }}</code>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">Thời gian:</div>
+                        <div class="col-8">
+                            {{ payment.created_at.strftime('%d/%m/%Y %H:%M:%S') }}
+                        </div>
+                    </div>
+                    
+                    {% if payment.reviewed_at %}
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">Xử lý lúc:</div>
+                        <div class="col-8">
+                            {{ payment.reviewed_at.strftime('%d/%m/%Y %H:%M:%S') }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if payment.admin_note %}
+                    <div class="row">
+                        <div class="col-4 text-muted">Ghi chú admin:</div>
+                        <div class="col-8">
+                            <div class="alert alert-warning mb-0">
+                                {{ payment.admin_note }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Proof Image -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-image"></i> Chứng từ thanh toán
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename='uploads/' + payment.proof_image_url) }}" 
+                         alt="Payment Proof" 
+                         class="img-fluid rounded"
+                         style="max-height: 600px; cursor: pointer;"
+                         onclick="window.open(this.src, '_blank')">
+                    <p class="text-muted mt-3 mb-0">
+                        <i class="fas fa-info-circle"></i> Click vào ảnh để xem kích thước đầy đủ
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

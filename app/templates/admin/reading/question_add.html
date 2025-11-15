@@ -1,0 +1,101 @@
+<!-- app/templates/admin/reading/question_add.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Add Reading Question - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="glass p-4 mb-4">
+                <a href="{{ url_for('admin.reading_questions', passage_id=passage.id) }}" 
+                   class="btn btn-ghost btn-sm mb-3">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+                <h1 class="text-gradient mb-2">
+                    <i class="fas fa-plus"></i> Add Question
+                </h1>
+                <p class="text-muted mb-0">{{ passage.title }}</p>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label class="form-label">Question Number *</label>
+                            <input type="number" name="question_number" class="form-control" min="1" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Question Type *</label>
+                            <select name="question_type" class="form-select" id="questionType" required>
+                                <option value="multiple_choice">Multiple Choice</option>
+                                <option value="true_false_ng">True/False/Not Given</option>
+                                <option value="yes_no_ng">Yes/No/Not Given</option>
+                                <option value="matching_headings">Matching Headings</option>
+                                <option value="sentence_completion">Sentence Completion</option>
+                                <option value="summary_completion">Summary Completion</option>
+                                <option value="short_answer">Short Answer</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Question Text *</label>
+                            <textarea name="question_text" class="form-control" rows="3" required></textarea>
+                        </div>
+                        
+                        <div class="mb-4" id="optionsField" style="display: none;">
+                            <label class="form-label">Options (JSON array)</label>
+                            <textarea name="options" class="form-control" rows="3" 
+                                      placeholder='["A. Option 1", "B. Option 2", "C. Option 3", "D. Option 4"]'></textarea>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Correct Answer *</label>
+                            <input type="text" name="correct_answer" class="form-control" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Paragraph Reference</label>
+                            <input type="text" name="paragraph_reference" class="form-control" 
+                                   placeholder="A, B, C...">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Explanation</label>
+                            <textarea name="explanation" class="form-control" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Difficulty</label>
+                            <select name="difficulty" class="form-select">
+                                <option value="easy">Easy</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('admin.reading_questions', passage_id=passage.id) }}" 
+                               class="btn btn-ghost">Cancel</a>
+                            <button type="submit" class="btn btn-primary flex-grow-1">
+                                <i class="fas fa-save"></i> Create Question
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('questionType').addEventListener('change', function() {
+        const optionsField = document.getElementById('optionsField');
+        optionsField.style.display = (this.value === 'multiple_choice') ? 'block' : 'none';
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,126 @@
+<!-- app/templates/listening/section_practice.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}{{ section.title }} - IELTS AI Platform{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Audio & Instructions Panel -->
+        <div class="col-lg-4 mb-4">
+            <div class="card position-sticky" style="top: 80px;">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-headphones"></i> Audio
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="glass p-3 mb-3">
+                        <p class="mb-2"><strong>{{ section.title }}</strong></p>
+                        <small class="text-muted">
+                            Part {{ section.part_number }} - {{ section.topic }}
+                        </small>
+                    </div>
+                    
+                    <!-- Audio Player -->
+                    <audio id="audioPlayer" controls class="w-100 mb-3">
+                        <source src="{{ url_for('static', filename='uploads/' + section.audio_url) }}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Hướng dẫn:</strong>
+                        <ul class="mb-0 mt-2 small">
+                            <li>Nghe audio và trả lời câu hỏi</li>
+                            <li>Bạn có thể nghe lại nhiều lần</li>
+                            <li>Hoàn toàn MIỄN PHÍ</li>
+                            <li>Xem transcript sau khi nộp bài</li>
+                        </ul>
+                    </div>
+                    
+                    <button class="btn btn-outline-primary w-100" onclick="document.getElementById('audioPlayer').currentTime = 0; document.getElementById('audioPlayer').play();">
+                        <i class="fas fa-redo"></i> Nghe lại từ đầu
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Questions Panel -->
+        <div class="col-lg-8">
+            <form method="POST" action="{{ url_for('listening.section_submit', section_id=section.id) }}" id="answerForm">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-question-circle"></i>
+                            Câu hỏi ({{ questions|length }})
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% for question in questions %}
+                        <div class="glass p-4 mb-3">
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="badge bg-primary" style="min-width: 40px;">
+                                    {{ question.question_number }}
+                                </div>
+                                
+                                <div class="flex-grow-1">
+                                    <!-- Question Type Badge -->
+                                    <span class="badge bg-secondary mb-2">
+                                        {{ question.question_type|upper }}
+                                    </span>
+                                    
+                                    <!-- Question Image (if any) -->
+                                    {% if question.image_url %}
+                                    <img src="{{ url_for('static', filename='uploads/' + question.image_url) }}" 
+                                         alt="Question" 
+                                         class="img-fluid rounded mb-3"
+                                         onclick="window.open(this.src, '_blank')"
+                                         style="cursor: pointer; max-height: 300px;">
+                                    {% endif %}
+                                    
+                                    <!-- Question Text -->
+                                    <p class="mb-3">{{ question.question_text }}</p>
+                                    
+                                    <!-- Answer Input -->
+                                    {% if question.question_type == 'multiple_choice' and question.options %}
+                                        <div class="list-group">
+                                            {% for option in question.options %}
+                                            <label class="list-group-item list-group-item-action">
+                                                <input type="radio" 
+                                                       name="question_{{ question.id }}" 
+                                                       value="{{ option }}" 
+                                                       class="form-check-input me-2">
+                                                {{ option }}
+                                            </label>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <input type="text" 
+                                               name="question_{{ question.id }}" 
+                                               class="form-control" 
+                                               placeholder="Nhập câu trả lời...">
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Submit Button -->
+                <div class="d-flex gap-2 justify-content-between">
+                    <a href="{{ url_for('listening.sections') }}" class="btn btn-ghost">
+                        <i class="fas fa-arrow-left"></i> Quay lại
+                    </a>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Nộp bài
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

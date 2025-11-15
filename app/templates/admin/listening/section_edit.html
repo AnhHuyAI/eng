@@ -1,0 +1,91 @@
+<!-- app/templates/admin/listening/section_edit.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Edit Listening Section - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="glass p-4 mb-4">
+                <a href="{{ url_for('admin.listening_sections') }}" class="btn btn-ghost btn-sm mb-3">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+                <h1 class="text-gradient mb-2">
+                    <i class="fas fa-edit"></i> Edit Listening Section
+                </h1>
+            </div>
+            
+            <!-- Form -->
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-4">
+                            <label class="form-label">Title *</label>
+                            <input type="text" name="title" class="form-control" 
+                                   value="{{ section.title }}" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Part Number *</label>
+                            <select name="part_number" class="form-select" required>
+                                <option value="1" {% if section.part_number == 1 %}selected{% endif %}>Part 1</option>
+                                <option value="2" {% if section.part_number == 2 %}selected{% endif %}>Part 2</option>
+                                <option value="3" {% if section.part_number == 3 %}selected{% endif %}>Part 3</option>
+                                <option value="4" {% if section.part_number == 4 %}selected{% endif %}>Part 4</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control" rows="3">{{ section.description or '' }}</textarea>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Current Audio</label>
+                            <audio controls class="w-100 mb-2">
+                                <source src="{{ url_for('static', filename='uploads/' + section.audio_url) }}" type="audio/mpeg">
+                            </audio>
+                            <label class="form-label">Replace Audio (optional)</label>
+                            <input type="file" name="audio_file" class="form-control" accept="audio/mpeg,audio/mp3">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Transcript</label>
+                            <textarea name="transcript" class="form-control" rows="6">{{ section.transcript or '' }}</textarea>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Difficulty</label>
+                                <select name="difficulty" class="form-select">
+                                    <option value="easy" {% if section.difficulty == 'easy' %}selected{% endif %}>Easy</option>
+                                    <option value="medium" {% if section.difficulty == 'medium' %}selected{% endif %}>Medium</option>
+                                    <option value="hard" {% if section.difficulty == 'hard' %}selected{% endif %}>Hard</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Topic</label>
+                                <input type="text" name="topic" class="form-control" 
+                                       value="{{ section.topic or '' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('admin.listening_sections') }}" class="btn btn-ghost">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary flex-grow-1">
+                                <i class="fas fa-save"></i> Update Section
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+<!-- app/templates/emails/payment_rejected.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #ef4444, #f43f5e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #fef2f2;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+        .info-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>❌ Yêu cầu nạp tiền không được chấp nhận</h1>
+        </div>
+        <div class="content">
+            <p>Xin chào <strong>{{ user.full_name or user.email }}</strong>,</p>
+            
+            <p>Rất tiếc, yêu cầu nạp tiền của bạn không được chấp nhận.</p>
+            
+            <div class="info-box">
+                <h3>📋 Thông tin:</h3>
+                <p><strong>Gói:</strong> {{ payment.package_id|upper }}</p>
+                <p><strong>Số tiền:</strong> {{ (payment.amount / 1000)|int }}K VNĐ</p>
+                {% if payment.admin_note %}
+                <p><strong>Lý do:</strong> {{ payment.admin_note }}</p>
+                {% endif %}
+            </div>
+            
+            <p>Vui lòng kiểm tra lại thông tin thanh toán và thử lại. Nếu bạn cần hỗ trợ, vui lòng liên hệ với chúng tôi.</p>
+            
+            <p>Trân trọng,<br>
+            <strong>IELTS AI Team</strong></p>
+        </div>
+    </div>
+</body>
+</html>

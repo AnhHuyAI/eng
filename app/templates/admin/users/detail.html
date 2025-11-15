@@ -1,0 +1,232 @@
+<!-- app/templates/admin/users/detail.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}User Detail - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass p-4">
+                <a href="{{ url_for('admin.users') }}" class="btn btn-ghost btn-sm mb-3">
+                    <i class="fas fa-arrow-left"></i> Back to Users
+                </a>
+                <h1 class="text-gradient mb-2">
+                    <i class="fas fa-user"></i> {{ user.email }}
+                </h1>
+                <p class="text-muted mb-0">User ID: #{{ user.id }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User Info -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i> Thông tin cơ bản
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">Email:</div>
+                        <div class="col-8"><strong>{{ user.email }}</strong></div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">Full Name:</div>
+                        <div class="col-8">{{ user.full_name or '-' }}</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">Credits:</div>
+                        <div class="col-8">
+                            <span class="badge bg-primary" style="font-size: 1rem;">
+                                <i class="fas fa-coins"></i> {{ user.credits }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">Status:</div>
+                        <div class="col-8">
+                            {% if user.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger">Banned</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">Registered:</div>
+                        <div class="col-8">{{ user.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-4 text-muted">Last Login:</div>
+                        <div class="col-8">
+                            {% if user.last_login %}
+                            {{ user.last_login.strftime('%d/%m/%Y %H:%M') }}
+                            {% else %}
+                            <span class="text-muted">Never</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar"></i> Statistics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="glass p-3">
+                                <h4 class="text-gradient mb-1">{{ stats.writings }}</h4>
+                                <small class="text-muted">Writings</small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-6 mb-3">
+                            <div class="glass p-3">
+                                <h4 class="text-gradient mb-1">{{ stats.speakings }}</h4>
+                                <small class="text-muted">Speakings</small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-6 mb-3">
+                            <div class="glass p-3">
+                                <h4 class="text-gradient mb-1">{{ stats.listenings }}</h4>
+                                <small class="text-muted">Listenings</small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-6 mb-3">
+                            <div class="glass p-3">
+                                <h4 class="text-gradient mb-1">{{ stats.readings }}</h4>
+                                <small class="text-muted">Readings</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-coins"></i> Add Credits
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.user_add_credits', user_id=user.id) }}">
+                        <div class="mb-3">
+                            <label class="form-label">Amount:</label>
+                            <input type="number" name="amount" class="form-control" min="1" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Note:</label>
+                            <input type="text" name="note" class="form-control" placeholder="Lý do cộng credits...">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-plus-circle"></i> Add Credits
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-ban"></i> Account Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.user_toggle_active', user_id=user.id) }}"
+                          onsubmit="return confirm('Are you sure?')">
+                        {% if user.is_active %}
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="fas fa-ban"></i> Ban User
+                        </button>
+                        {% else %}
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-check-circle"></i> Unban User
+                        </button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Transactions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history"></i> Recent Transactions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Balance After</th>
+                                    <th>Note</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trans in transactions %}
+                                <tr>
+                                    <td><small>{{ trans.created_at.strftime('%d/%m/%Y %H:%M') }}</small></td>
+                                    <td>
+                                        {% if trans.type == 'topup' %}
+                                        <span class="badge bg-success">Topup</span>
+                                        {% elif trans.type == 'usage' %}
+                                        <span class="badge bg-warning">Usage</span>
+                                        {% elif trans.type == 'refund' %}
+                                        <span class="badge bg-info">Refund</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ trans.type }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="{% if trans.amount > 0 %}text-success{% else %}text-danger{% endif %}">
+                                            {{ trans.amount }}
+                                        </span>
+                                    </td>
+                                    <td>{{ trans.balance_after }}</td>
+                                    <td><small class="text-muted">{{ trans.note or '-' }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
