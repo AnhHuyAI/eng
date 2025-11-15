@@ -1,0 +1,222 @@
+{% extends "student/base_student.html" %}
+
+{% block page_title %}My Assignments{% endblock %}
+
+{% block student_content %}
+<h1 class="h2 mb-4">My Assignments</h1>
+
+<!-- Filter Tabs -->
+<ul class="nav nav-tabs mb-4" id="assignmentTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="active-tab" data-bs-toggle="tab"
+                data-bs-target="#active" type="button">
+            Active <span class="badge bg-danger ms-1">{{ active_assignments|length }}</span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="completed-tab" data-bs-toggle="tab"
+                data-bs-target="#completed" type="button">
+            Completed <span class="badge bg-success ms-1">{{ completed_assignments|length }}</span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="all-tab" data-bs-toggle="tab"
+                data-bs-target="#all" type="button">
+            All <span class="badge bg-secondary ms-1">{{ all_assignments|length }}</span>
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="assignmentTabsContent">
+    <!-- Active Assignments -->
+    <div class="tab-pane fade show active" id="active" role="tabpanel">
+        {% if active_assignments %}
+        <div class="row">
+            {% for assignment in active_assignments %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 {% if assignment.due_date and assignment.due_date < now %}border-danger{% endif %}">
+                    <div class="card-header bg-{{ assignment.content_type == 'writing' and 'primary' or 'success' }} text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-white text-dark">{{ assignment.content_type|title }}</span>
+                            {% if assignment.due_date %}
+                            <small>
+                                <i class="bi bi-calendar-event"></i>
+                                {{ assignment.due_date.strftime('%m/%d/%Y') }}
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ assignment.title }}</h5>
+                        <p class="text-muted small mb-2">
+                            <i class="bi bi-people"></i> {{ assignment.teacher_class.name }}
+                        </p>
+
+                        {% if assignment.instructions %}
+                        <p class="small">{{ assignment.instructions[:100] }}{% if assignment.instructions|length > 100 %}...{% endif %}</p>
+                        {% endif %}
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted">Attempts:</small>
+                            <span>
+                                {{ assignment.get_student_attempts(current_user.id)|length }}
+                                {% if assignment.max_attempts %} / {{ assignment.max_attempts }}{% else %} / ∞{% endif %}
+                            </span>
+                        </div>
+
+                        {% if assignment.due_date %}
+                        {% set days_left = (assignment.due_date.date() - now.date()).days %}
+                        <div class="alert alert-{% if days_left < 0 %}danger{% elif days_left < 3 %}warning{% else %}info{% endif %} py-2 mb-0">
+                            <small>
+                                {% if days_left < 0 %}
+                                <i class="bi bi-exclamation-triangle"></i> Overdue by {{ -days_left }} day(s)
+                                {% elif days_left == 0 %}
+                                <i class="bi bi-exclamation-circle"></i> Due today!
+                                {% elif days_left < 3 %}
+                                <i class="bi bi-clock"></i> {{ days_left }} day(s) left
+                                {% else %}
+                                <i class="bi bi-info-circle"></i> {{ days_left }} day(s) left
+                                {% endif %}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer">
+                        {% set can_attempt = not assignment.max_attempts or assignment.get_student_attempts(current_user.id)|length < assignment.max_attempts %}
+                        {% if can_attempt %}
+                        <a href="{{ assignment.get_practice_url() }}" class="btn btn-primary w-100">
+                            <i class="bi bi-play-circle"></i> Start Practice
+                        </a>
+                        {% else %}
+                        <button class="btn btn-secondary w-100" disabled>
+                            Max Attempts Reached
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-check-circle display-1 text-success"></i>
+                <h4 class="mt-3">All Caught Up!</h4>
+                <p class="text-muted">You don't have any active assignments.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Completed Assignments -->
+    <div class="tab-pane fade" id="completed" role="tabpanel">
+        {% if completed_assignments %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Assignment</th>
+                        <th>Class</th>
+                        <th>Type</th>
+                        <th>Completed</th>
+                        <th>Score</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assignment in completed_assignments %}
+                    {% set latest_attempt = assignment.get_latest_attempt(current_user.id) %}
+                    <tr>
+                        <td>{{ assignment.title }}</td>
+                        <td>{{ assignment.teacher_class.name }}</td>
+                        <td><span class="badge bg-secondary">{{ assignment.content_type|title }}</span></td>
+                        <td>{{ latest_attempt.created_at.strftime('%Y-%m-%d') if latest_attempt else 'N/A' }}</td>
+                        <td>
+                            {% if latest_attempt and latest_attempt.band_score %}
+                            <strong class="text-success">{{ latest_attempt.band_score }}</strong>
+                            {% else %}
+                            <span class="text-muted">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if latest_attempt %}
+                            <a href="{{ latest_attempt.get_result_url() }}" class="btn btn-sm btn-info">
+                                <i class="bi bi-eye"></i> View Result
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-inbox display-1 text-muted"></i>
+                <h4 class="mt-3">No Completed Assignments</h4>
+                <p class="text-muted">Complete your active assignments to see them here.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- All Assignments -->
+    <div class="tab-pane fade" id="all" role="tabpanel">
+        {% if all_assignments %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Assignment</th>
+                        <th>Class</th>
+                        <th>Type</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assignment in all_assignments %}
+                    <tr>
+                        <td>{{ assignment.title }}</td>
+                        <td>{{ assignment.teacher_class.name }}</td>
+                        <td><span class="badge bg-secondary">{{ assignment.content_type|title }}</span></td>
+                        <td>
+                            {% if assignment.due_date %}
+                            {{ assignment.due_date.strftime('%Y-%m-%d') }}
+                            {% else %}
+                            <span class="text-muted">No deadline</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if assignment.is_completed_by(current_user.id) %}
+                            <span class="badge bg-success">Completed</span>
+                            {% else %}
+                            <span class="badge bg-warning">Active</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ assignment.get_practice_url() }}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-play-circle"></i> Practice
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-inbox display-1 text-muted"></i>
+                <h4 class="mt-3">No Assignments</h4>
+                <p class="text-muted">Your teacher hasn't created any assignments yet.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

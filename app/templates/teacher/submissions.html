@@ -1,0 +1,239 @@
+{% extends "teacher/base_teacher.html" %}
+
+{% block teacher_content %}
+<h1 class="h2 mb-4">Student Submissions</h1>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-funnel"></i> Filter Submissions</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('teacher.submissions') }}" class="row g-3">
+            <div class="col-md-3">
+                <label for="content_type" class="form-label">Content Type</label>
+                <select class="form-select" name="content_type" id="content_type">
+                    <option value="">All Types</option>
+                    <option value="writing">Writing</option>
+                    <option value="reading">Reading</option>
+                    <option value="speaking">Speaking</option>
+                    <option value="listening">Listening</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="class_id" class="form-label">Class</label>
+                <select class="form-select" name="class_id" id="class_id">
+                    <option value="">All Classes</option>
+                    {% for cls in current_user.teacher_classes.filter_by(status='active').all() %}
+                    <option value="{{ cls.id }}">{{ cls.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="student_id" class="form-label">Student</label>
+                <select class="form-select" name="student_id" id="student_id">
+                    <option value="">All Students</option>
+                    {% for student in current_user.students %}
+                    <option value="{{ student.id }}">{{ student.full_name or student.email }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary d-block w-100">
+                    <i class="bi bi-search"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Writing Submissions -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Writing Submissions ({{ writing_submissions|length }})</h5>
+    </div>
+    <div class="card-body">
+        {% if writing_submissions %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Task</th>
+                        <th>Submitted</th>
+                        <th>AI Score</th>
+                        <th>Teacher Score</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for submission in writing_submissions %}
+                    <tr>
+                        <td>
+                            <strong>{{ submission.user.full_name or submission.user.email }}</strong><br>
+                            <small class="text-muted">{{ submission.user.email }}</small>
+                        </td>
+                        <td>
+                            <strong>Task {{ submission.task.task_type }}</strong><br>
+                            <small class="text-muted">{{ submission.task.question_text[:80] }}...</small>
+                        </td>
+                        <td>{{ submission.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            {% if submission.band_score %}
+                            <span class="badge bg-info fs-6">{{ submission.band_score }}</span>
+                            {% else %}
+                            <span class="text-muted">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if submission.teacher_score %}
+                            <span class="badge bg-success fs-6">{{ submission.teacher_score }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if submission.graded_at %}
+                            <span class="badge bg-success">Graded</span>
+                            {% else %}
+                            <span class="badge bg-warning">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#submissionModal{{ submission.id }}">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- Submission Detail Modal -->
+                    <div class="modal fade" id="submissionModal{{ submission.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-xl">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Submission Details - {{ submission.user.full_name }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6 class="text-primary">Student's Answer:</h6>
+                                            <div class="border p-3 bg-light" style="max-height: 400px; overflow-y: auto;">
+                                                {{ submission.answer_text }}
+                                            </div>
+                                            <div class="mt-2">
+                                                <small class="text-muted">Word count: {{ submission.answer_text.split()|length }}</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="text-success">AI Feedback:</h6>
+                                            {% if submission.feedback %}
+                                            <div class="border p-3 bg-light" style="max-height: 400px; overflow-y: auto;">
+                                                <strong>Band Score: {{ submission.band_score }}</strong>
+                                                <hr>
+                                                {{ submission.feedback|safe }}
+                                            </div>
+                                            {% else %}
+                                            <p class="text-muted">Grading in progress...</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Teacher Comment Section -->
+                                    <div class="mt-4">
+                                        <h6 class="text-warning">Teacher's Comment:</h6>
+                                        <form method="POST" action="{{ url_for('teacher.add_comment', submission_id=submission.id) }}">
+                                            <div class="mb-3">
+                                                <textarea class="form-control" name="teacher_comment" rows="3"
+                                                          placeholder="Add your feedback...">{{ submission.teacher_comment or '' }}</textarea>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <label class="form-label">Teacher Score (Optional)</label>
+                                                    <input type="number" class="form-control" name="teacher_score"
+                                                           step="0.5" min="0" max="9" value="{{ submission.teacher_score or '' }}"
+                                                           placeholder="0.0 - 9.0">
+                                                </div>
+                                                <div class="col-md-9 d-flex align-items-end">
+                                                    <button type="submit" class="btn btn-warning">
+                                                        <i class="bi bi-save"></i> Save Comment
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center">No writing submissions yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Reading Attempts -->
+<div class="card">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0"><i class="bi bi-book"></i> Reading Attempts ({{ reading_attempts|length }})</h5>
+    </div>
+    <div class="card-body">
+        {% if reading_attempts %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Passage</th>
+                        <th>Completed</th>
+                        <th>Score</th>
+                        <th>Correct/Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attempt in reading_attempts %}
+                    <tr>
+                        <td>
+                            <strong>{{ attempt.user.full_name or attempt.user.email }}</strong><br>
+                            <small class="text-muted">{{ attempt.user.email }}</small>
+                        </td>
+                        <td>
+                            <strong>{{ attempt.passage.title }}</strong><br>
+                            <small class="text-muted">{{ attempt.passage.topic }}</small>
+                        </td>
+                        <td>{{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            {% if attempt.band_score %}
+                            <span class="badge bg-info fs-6">{{ attempt.band_score }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ attempt.correct_count }}/{{ attempt.total_questions }}</strong>
+                            <small class="text-muted">({{ (attempt.correct_count / attempt.total_questions * 100)|round(1) }}%)</small>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('reading.result', attempt_id=attempt.id) }}"
+                               class="btn btn-sm btn-primary" target="_blank">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center">No reading attempts yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "student/base_student.html" %}
+
+{% block page_title %}Join a Class{% endblock %}
+
+{% block student_content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="mb-0"><i class="bi bi-door-open"></i> Join a Class</h4>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted text-center mb-4">
+                    Enter the 6-character class code provided by your teacher
+                </p>
+
+                <form method="POST" action="{{ url_for('student.join_class') }}">
+                    <div class="mb-4">
+                        <label for="class_code" class="form-label">Class Code</label>
+                        <input type="text"
+                               class="form-control form-control-lg text-center text-uppercase"
+                               id="class_code"
+                               name="class_code"
+                               placeholder="ABC123"
+                               maxlength="6"
+                               pattern="[A-Za-z0-9]{6}"
+                               required
+                               style="letter-spacing: 0.5rem; font-size: 1.5rem; font-weight: bold;">
+                        <small class="form-text text-muted">
+                            Example: ABC123 or XYZ789
+                        </small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i> Join Class
+                        </button>
+                        <a href="{{ url_for('student.classes') }}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Card -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6 class="card-title"><i class="bi bi-question-circle"></i> Need Help?</h6>
+                <ul class="mb-0">
+                    <li>Ask your teacher for the class code</li>
+                    <li>The code is exactly 6 characters (letters and numbers)</li>
+                    <li>Codes are case-insensitive</li>
+                    <li>You can join multiple classes</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Your Classes -->
+        {% if current_user.class_memberships.filter_by(status='active').all() %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-people"></i> Your Current Classes</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for class_student in current_user.class_memberships.filter_by(status='active').all() %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ class_student.teacher_class.name }}</strong><br>
+                                <small class="text-muted">
+                                    Teacher: {{ class_student.teacher_class.teacher.full_name or class_student.teacher_class.teacher.center_name }}
+                                </small>
+                            </div>
+                            <span class="badge bg-success">Active</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const codeInput = document.getElementById('class_code');
+
+    // Auto-uppercase
+    codeInput.addEventListener('input', function() {
+        this.value = this.value.toUpperCase();
+    });
+
+    // Auto-format with spaces (optional visual enhancement)
+    codeInput.addEventListener('keyup', function(e) {
+        // Remove non-alphanumeric characters
+        let value = this.value.replace(/[^A-Z0-9]/g, '');
+        this.value = value.substring(0, 6);
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,244 @@
+{% extends "student/base_student.html" %}
+
+{% block page_title %}My Dashboard{% endblock %}
+
+{% block student_content %}
+<div class="d-flex justify-content-between align-items-center pb-2 mb-4 border-bottom">
+    <h1 class="h2">Welcome, {{ current_user.full_name or 'Student' }}!</h1>
+    <a href="{{ url_for('student.join_class') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Join a Class
+    </a>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            My Classes
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ student_classes|length }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-people fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Active Assignments
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ active_assignments|length }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-clipboard-check fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Completed
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ completed_count }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-check-circle fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Average Score
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ "%.1f"|format(average_score) if average_score else 'N/A' }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-star fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Active Assignments -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Active Assignments</h6>
+                <a href="{{ url_for('student.assignments') }}" class="btn btn-sm btn-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if active_assignments %}
+                <div class="list-group">
+                    {% for assignment in active_assignments[:5] %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">{{ assignment.title }}</h6>
+                                <small class="text-muted">{{ assignment.teacher_class.name }}</small>
+                                {% if assignment.due_date %}
+                                <br><small class="text-danger">
+                                    <i class="bi bi-calendar-event"></i>
+                                    Due: {{ assignment.due_date.strftime('%Y-%m-%d') }}
+                                </small>
+                                {% endif %}
+                            </div>
+                            <span class="badge bg-{{ assignment.content_type == 'writing' and 'primary' or 'success' }}">
+                                {{ assignment.content_type|title }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0">No active assignments</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- My Classes -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-success">My Classes</h6>
+                <a href="{{ url_for('student.classes') }}" class="btn btn-sm btn-success">View All</a>
+            </div>
+            <div class="card-body">
+                {% if student_classes %}
+                <div class="list-group">
+                    {% for class_student in student_classes %}
+                    <a href="{{ url_for('student.view_class', class_id=class_student.class_id) }}"
+                       class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ class_student.teacher_class.name }}</h6>
+                                <small class="text-muted">
+                                    Teacher: {{ class_student.teacher_class.teacher.full_name or class_student.teacher_class.teacher.center_name }}
+                                </small>
+                            </div>
+                            <span class="badge bg-primary">{{ class_student.teacher_class.students.count() }} students</span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0">
+                    You haven't joined any classes yet.
+                    <a href="{{ url_for('student.join_class') }}">Join a class</a>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Submissions -->
+<div class="card">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-info">Recent Submissions</h6>
+    </div>
+    <div class="card-body">
+        {% if recent_submissions %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Task</th>
+                        <th>Type</th>
+                        <th>Submitted</th>
+                        <th>Score</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for submission in recent_submissions %}
+                    <tr>
+                        <td>{{ submission.task.question_text[:60] }}...</td>
+                        <td><span class="badge bg-primary">Writing</span></td>
+                        <td>{{ submission.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if submission.band_score %}
+                            <strong>{{ submission.band_score }}</strong>
+                            {% else %}
+                            <span class="text-muted">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if submission.graded_at %}
+                            <span class="badge bg-success">Graded</span>
+                            {% else %}
+                            <span class="badge bg-warning">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('writing.result', submission_id=submission.id) }}"
+                               class="btn btn-sm btn-info">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center mb-0">No submissions yet</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+<style>
+.border-left-primary {
+    border-left: 4px solid #4e73df !important;
+}
+.border-left-success {
+    border-left: 4px solid #1cc88a !important;
+}
+.border-left-info {
+    border-left: 4px solid #36b9cc !important;
+}
+.border-left-warning {
+    border-left: 4px solid #f6c23e !important;
+}
+.text-gray-300 {
+    color: #dddfeb !important;
+}
+.text-gray-800 {
+    color: #5a5c69 !important;
+}
+</style>

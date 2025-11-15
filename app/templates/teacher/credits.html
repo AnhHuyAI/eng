@@ -1,0 +1,220 @@
+{% extends "teacher/base_teacher.html" %}
+
+{% block teacher_content %}
+<h1 class="h2 mb-4">Credits Management</h1>
+
+<!-- Current Balance -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white shadow">
+            <div class="card-body text-center">
+                <h6 class="text-uppercase mb-2">Current Balance</h6>
+                <h1 class="display-3 mb-0">{{ balance }}</h1>
+                <p class="mb-0">Credits</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">How Credits Work</h5>
+                <ul class="mb-0">
+                    <li><strong>Writing Tasks:</strong> 1 credit per submission (AI grading)</li>
+                    <li><strong>Speaking Practice:</strong> 2 credits per submission (STT + AI grading)</li>
+                    <li><strong>Reading & Listening:</strong> FREE (auto-grading)</li>
+                </ul>
+                <div class="alert alert-info mt-3 mb-0">
+                    <i class="bi bi-info-circle"></i> Your students use YOUR credits when they submit assignments.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Purchase Packages -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0"><i class="bi bi-cart-plus"></i> Purchase Credits</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for key, package in packages.items() %}
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 {% if key == 'pro' %}border-primary{% endif %}">
+                    {% if key == 'pro' %}
+                    <div class="card-header bg-primary text-white text-center">
+                        <strong>MOST POPULAR</strong>
+                    </div>
+                    {% endif %}
+                    <div class="card-body text-center">
+                        <h4 class="text-uppercase text-muted">{{ key.title() }}</h4>
+                        <h1 class="display-4 text-primary">${{ package.price_usd }}</h1>
+                        <p class="text-muted">{{ "{:,}".format(package.price_vnd) }} VND</p>
+                        <hr>
+                        <h2 class="mb-3">{{ package.credits }} <small class="text-muted">credits</small></h2>
+
+                        {% if key == 'pro' %}
+                        <span class="badge bg-success mb-3">+10% BONUS</span>
+                        {% elif key == 'enterprise' %}
+                        <span class="badge bg-success mb-3">+20% BONUS</span>
+                        {% endif %}
+
+                        <ul class="list-unstyled mt-3 mb-4">
+                            <li><i class="bi bi-check-circle text-success"></i> ~{{ (package.credits // 1)|int }} writing tasks</li>
+                            <li><i class="bi bi-check-circle text-success"></i> ~{{ (package.credits // 2)|int }} speaking tasks</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Unlimited reading/listening</li>
+                        </ul>
+
+                        <button class="btn btn-primary btn-lg w-100" data-bs-toggle="modal"
+                                data-bs-target="#purchaseModal"
+                                data-package="{{ key }}"
+                                data-price-usd="{{ package.price_usd }}"
+                                data-price-vnd="{{ package.price_vnd }}"
+                                data-credits="{{ package.credits }}">
+                            Purchase Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Transaction History -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Transaction History</h5>
+    </div>
+    <div class="card-body">
+        {% if transactions %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Reference</th>
+                        <th>Amount</th>
+                        <th>Balance After</th>
+                        <th>Note</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for txn in transactions %}
+                    <tr>
+                        <td>{{ txn.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            {% if txn.transaction_type == 'purchase' %}
+                            <span class="badge bg-success">Purchase</span>
+                            {% elif txn.transaction_type == 'deduction' %}
+                            <span class="badge bg-warning">Usage</span>
+                            {% elif txn.transaction_type == 'refund' %}
+                            <span class="badge bg-info">Refund</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ txn.reference_type }}: #{{ txn.reference_id }}</small>
+                        </td>
+                        <td>
+                            {% if txn.amount > 0 %}
+                            <span class="text-success">+{{ txn.amount }}</span>
+                            {% else %}
+                            <span class="text-danger">{{ txn.amount }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ txn.balance_after }}</td>
+                        <td><small>{{ txn.note or '-' }}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center">No transactions yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Purchase Modal -->
+<div class="modal fade" id="purchaseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Complete Purchase</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('payment.create_payment') }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <strong>Package:</strong> <span id="modal-package"></span><br>
+                        <strong>Credits:</strong> <span id="modal-credits"></span><br>
+                        <strong>Price:</strong> $<span id="modal-price-usd"></span> (<span id="modal-price-vnd"></span> VND)
+                    </div>
+
+                    <input type="hidden" name="package" id="input-package">
+                    <input type="hidden" name="amount_usd" id="input-amount-usd">
+                    <input type="hidden" name="amount_vnd" id="input-amount-vnd">
+                    <input type="hidden" name="credits" id="input-credits">
+
+                    <h6 class="mb-3">Payment Method: Bank Transfer</h6>
+
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <p class="mb-2"><strong>Bank Name:</strong> {{ BANK_INFO.bank_name }}</p>
+                            <p class="mb-2"><strong>Account Number:</strong> <code>{{ BANK_INFO.account_number }}</code></p>
+                            <p class="mb-2"><strong>Account Name:</strong> {{ BANK_INFO.account_name }}</p>
+                            <p class="mb-2"><strong>Branch:</strong> {{ BANK_INFO.branch }}</p>
+                            <hr>
+                            <p class="mb-0"><strong>Transfer Content:</strong></p>
+                            <p class="mb-0"><code>IELTS_{{ current_user.id }}_<span id="modal-package-code"></span></code></p>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label">Upload Payment Proof (Screenshot)</label>
+                        <input type="file" class="form-control" name="payment_proof" accept="image/*" required>
+                        <small class="text-muted">Upload a screenshot of your bank transfer</small>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label">Additional Notes (Optional)</label>
+                        <textarea class="form-control" name="notes" rows="2"
+                                  placeholder="e.g., Transfer from ABC Bank at 10:30 AM"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Payment Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const purchaseModal = document.getElementById('purchaseModal');
+    purchaseModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const packageName = button.getAttribute('data-package');
+        const priceUSD = button.getAttribute('data-price-usd');
+        const priceVND = button.getAttribute('data-price-vnd');
+        const credits = button.getAttribute('data-credits');
+
+        // Update modal content
+        document.getElementById('modal-package').textContent = packageName.toUpperCase();
+        document.getElementById('modal-credits').textContent = credits;
+        document.getElementById('modal-price-usd').textContent = priceUSD;
+        document.getElementById('modal-price-vnd').textContent = parseInt(priceVND).toLocaleString();
+        document.getElementById('modal-package-code').textContent = packageName.toUpperCase();
+
+        // Update hidden form fields
+        document.getElementById('input-package').value = packageName;
+        document.getElementById('input-amount-usd').value = priceUSD;
+        document.getElementById('input-amount-vnd').value = priceVND;
+        document.getElementById('input-credits').value = credits;
+    });
+});
+</script>
+{% endblock %}

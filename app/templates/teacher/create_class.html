@@ -1,0 +1,50 @@
+{% extends "teacher/base_teacher.html" %}
+
+{% block teacher_content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Create New Class</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('teacher.create_class') }}">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Class Name *</label>
+                        <input type="text" class="form-control" id="name" name="name"
+                               placeholder="e.g., IELTS Foundation - June 2024" required>
+                        <div class="form-text">Choose a descriptive name for your class</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description"
+                                  rows="3" placeholder="Describe what this class is about..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="max_students" class="form-label">Maximum Students</label>
+                        <input type="number" class="form-control" id="max_students" name="max_students"
+                               placeholder="Leave empty for unlimited">
+                        <div class="form-text">Optional: Set a limit on number of students</div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        A unique join code will be generated automatically for students to join this class.
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Create Class
+                        </button>
+                        <a href="{{ url_for('teacher.classes') }}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

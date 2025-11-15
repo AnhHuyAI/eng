@@ -1,0 +1,187 @@
+{% extends "teacher/base_teacher.html" %}
+
+{% block teacher_content %}
+<h1 class="h2 mb-4">Content Library</h1>
+
+<!-- Admin's Public Content -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="bi bi-folder-fill"></i> Public Library (Admin Content)</h5>
+    </div>
+    <div class="card-body">
+        <ul class="nav nav-tabs mb-3" id="publicTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#public-writing">
+                    Writing Tasks ({{ public_writing|length }})
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#public-reading">
+                    Reading Passages ({{ public_reading|length }})
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="public-writing">
+                {% if public_writing %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Task</th>
+                                <th>Type</th>
+                                <th>Topic</th>
+                                <th>Difficulty</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in public_writing %}
+                            <tr>
+                                <td>{{ task.question_text[:100] }}...</td>
+                                <td><span class="badge bg-info">Task {{ task.task_type }}</span></td>
+                                <td>{{ task.topic or 'N/A' }}</td>
+                                <td><span class="badge bg-secondary">{{ task.difficulty }}</span></td>
+                                <td>
+                                    <a href="{{ url_for('teacher.create_assignment') }}?content_id={{ task.id }}&type=writing"
+                                       class="btn btn-sm btn-primary">
+                                        Use in Assignment
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No public writing tasks available.</p>
+                {% endif %}
+            </div>
+
+            <div class="tab-pane fade" id="public-reading">
+                {% if public_reading %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Topic</th>
+                                <th>Difficulty</th>
+                                <th>Questions</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for passage in public_reading %}
+                            <tr>
+                                <td>{{ passage.title }}</td>
+                                <td>{{ passage.topic }}</td>
+                                <td><span class="badge bg-secondary">{{ passage.difficulty }}</span></td>
+                                <td>{{ passage.question_count() }}</td>
+                                <td>
+                                    <a href="{{ url_for('teacher.create_assignment') }}?content_id={{ passage.id }}&type=reading"
+                                       class="btn btn-sm btn-primary">
+                                        Use in Assignment
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No public reading passages available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Teacher's Private Content -->
+<div class="card">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0"><i class="bi bi-folder"></i> My Private Content</h5>
+    </div>
+    <div class="card-body">
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#my-writing">
+                    Writing Tasks ({{ my_writing|length }})
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#my-reading">
+                    Reading Passages ({{ my_reading|length }})
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="my-writing">
+                {% if my_writing %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Task</th>
+                                <th>Type</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in my_writing %}
+                            <tr>
+                                <td>{{ task.question_text[:80] }}...</td>
+                                <td>Task {{ task.task_type }}</td>
+                                <td>{{ task.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <a href="{{ url_for('teacher.create_assignment') }}?content_id={{ task.id }}&type=writing"
+                                       class="btn btn-sm btn-primary">Use</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">You haven't created any writing tasks yet.</p>
+                {% endif %}
+            </div>
+
+            <div class="tab-pane fade" id="my-reading">
+                {% if my_reading %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Topic</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for passage in my_reading %}
+                            <tr>
+                                <td>{{ passage.title }}</td>
+                                <td>{{ passage.topic }}</td>
+                                <td>{{ passage.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <a href="{{ url_for('teacher.create_assignment') }}?content_id={{ passage.id }}&type=reading"
+                                       class="btn btn-sm btn-primary">Use</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">You haven't created any reading passages yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

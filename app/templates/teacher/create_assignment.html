@@ -1,0 +1,179 @@
+{% extends "teacher/base_teacher.html" %}
+
+{% block teacher_content %}
+<h1 class="h2 mb-4">Create New Assignment</h1>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('teacher.create_assignment') }}">
+            <!-- Step 1: Select Class -->
+            <div class="mb-4">
+                <h5 class="card-title">1. Select Class</h5>
+                <select class="form-select" name="class_id" id="class_id" required>
+                    <option value="">Choose a class...</option>
+                    {% for cls in classes %}
+                    <option value="{{ cls.id }}">{{ cls.name }} ({{ cls.students.count() }} students)</option>
+                    {% endfor %}
+                </select>
+                {% if not classes %}
+                <div class="alert alert-warning mt-2">
+                    You haven't created any classes yet. <a href="{{ url_for('teacher.create_class') }}">Create a class first</a>.
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Step 2: Select Content -->
+            <div class="mb-4">
+                <h5 class="card-title">2. Select Content</h5>
+
+                <ul class="nav nav-tabs mb-3" id="contentTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="writing-tab" data-bs-toggle="tab"
+                                data-bs-target="#writing" type="button">
+                            Writing Tasks
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="reading-tab" data-bs-toggle="tab"
+                                data-bs-target="#reading" type="button">
+                            Reading Passages
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="contentTabContent">
+                    <!-- Writing Tasks -->
+                    <div class="tab-pane fade show active" id="writing">
+                        {% if public_writing %}
+                        <div class="list-group">
+                            {% for task in public_writing %}
+                            <label class="list-group-item">
+                                <input class="form-check-input me-2" type="radio"
+                                       name="content_selection"
+                                       value="writing|{{ task.id }}"
+                                       data-title="{{ task.question_text[:100] }}..."
+                                       data-type="writing_task{{ task.task_type }}">
+                                <div>
+                                    <div class="fw-bold">Task {{ task.task_type }}</div>
+                                    <small class="text-muted">{{ task.question_text[:150] }}...</small>
+                                    <div class="mt-1">
+                                        <span class="badge bg-secondary">{{ task.difficulty }}</span>
+                                        {% if task.topic %}
+                                        <span class="badge bg-info">{{ task.topic }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted">No writing tasks available.</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Reading Passages -->
+                    <div class="tab-pane fade" id="reading">
+                        {% if public_reading %}
+                        <div class="list-group">
+                            {% for passage in public_reading %}
+                            <label class="list-group-item">
+                                <input class="form-check-input me-2" type="radio"
+                                       name="content_selection"
+                                       value="reading|{{ passage.id }}"
+                                       data-title="{{ passage.title }}"
+                                       data-type="reading">
+                                <div>
+                                    <div class="fw-bold">{{ passage.title }}</div>
+                                    <small class="text-muted">{{ passage.passage[:150] }}...</small>
+                                    <div class="mt-1">
+                                        <span class="badge bg-secondary">{{ passage.difficulty }}</span>
+                                        <span class="badge bg-info">{{ passage.topic }}</span>
+                                        <span class="badge bg-success">{{ passage.question_count() }} questions</span>
+                                    </div>
+                                </div>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted">No reading passages available.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Hidden fields for form submission -->
+                <input type="hidden" name="content_type" id="content_type" required>
+                <input type="hidden" name="content_id" id="content_id" required>
+                <input type="hidden" name="title" id="title" required>
+            </div>
+
+            <!-- Step 3: Assignment Details -->
+            <div class="mb-4">
+                <h5 class="card-title">3. Assignment Details</h5>
+
+                <div class="mb-3">
+                    <label for="due_date" class="form-label">Due Date (Optional)</label>
+                    <input type="date" class="form-control" id="due_date" name="due_date">
+                    <small class="text-muted">Leave empty for no deadline</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="max_attempts" class="form-label">Maximum Attempts</label>
+                    <select class="form-select" name="max_attempts" id="max_attempts">
+                        <option value="">Unlimited</option>
+                        <option value="1">1 attempt</option>
+                        <option value="2">2 attempts</option>
+                        <option value="3" selected>3 attempts</option>
+                        <option value="5">5 attempts</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="instructions" class="form-label">Instructions for Students (Optional)</label>
+                    <textarea class="form-control" id="instructions" name="instructions" rows="3"
+                              placeholder="e.g., Complete before Friday class..."></textarea>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('teacher.classes') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                    <i class="bi bi-plus-circle"></i> Create Assignment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const classSelect = document.getElementById('class_id');
+    const contentRadios = document.querySelectorAll('input[name="content_selection"]');
+    const submitBtn = document.getElementById('submitBtn');
+    const contentTypeInput = document.getElementById('content_type');
+    const contentIdInput = document.getElementById('content_id');
+    const titleInput = document.getElementById('title');
+
+    // Enable submit button when both class and content are selected
+    function checkFormValidity() {
+        const classSelected = classSelect.value !== '';
+        const contentSelected = document.querySelector('input[name="content_selection"]:checked') !== null;
+        submitBtn.disabled = !(classSelected && contentSelected);
+    }
+
+    classSelect.addEventListener('change', checkFormValidity);
+
+    contentRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                const [type, id] = this.value.split('|');
+                contentTypeInput.value = this.dataset.type;
+                contentIdInput.value = id;
+                titleInput.value = this.dataset.title;
+                checkFormValidity();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

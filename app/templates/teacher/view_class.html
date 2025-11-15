@@ -1,0 +1,103 @@
+{% extends "teacher/base_teacher.html" %}
+
+{% block teacher_content %}
+<div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
+    <div>
+        <h1 class="h2">{{ teacher_class.name }}</h1>
+        <p class="text-muted">{{ teacher_class.description }}</p>
+    </div>
+    <div>
+        <span class="badge bg-primary fs-5">Code: {{ teacher_class.code }}</span>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Students ({{ students|length }})</h5>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+                    <i class="bi bi-plus"></i> Add Student
+                </button>
+            </div>
+            <div class="card-body">
+                {% if students %}
+                <div class="list-group">
+                    {% for class_student in students %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ class_student.student.full_name }}</strong><br>
+                                <small class="text-muted">{{ class_student.student.email }}</small>
+                            </div>
+                            <small class="text-muted">Joined: {{ class_student.joined_at.strftime('%Y-%m-%d') }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No students yet. Add students by email or share the class code.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Assignments ({{ assignments|length }})</h5>
+                <a href="{{ url_for('teacher.create_assignment') }}" class="btn btn-sm btn-success">
+                    <i class="bi bi-plus"></i> Create Assignment
+                </a>
+            </div>
+            <div class="card-body">
+                {% if assignments %}
+                <div class="list-group">
+                    {% for assignment in assignments %}
+                    <div class="list-group-item">
+                        <strong>{{ assignment.title }}</strong><br>
+                        <small class="text-muted">
+                            Type: {{ assignment.content_type }}
+                            {% if assignment.due_date %}
+                            | Due: {{ assignment.due_date.strftime('%Y-%m-%d') }}
+                            {% endif %}
+                        </small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No assignments yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal fade" id="addStudentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Student to Class</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('teacher.add_student', class_id=teacher_class.id) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="student_email" class="form-label">Student Email</label>
+                        <input type="email" class="form-control" id="student_email" name="student_email"
+                               required placeholder="student@example.com">
+                    </div>
+                    <div class="alert alert-info">
+                        The student must be registered in the system first.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

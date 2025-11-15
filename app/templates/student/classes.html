@@ -1,0 +1,96 @@
+{% extends "student/base_student.html" %}
+
+{% block page_title %}My Classes{% endblock %}
+
+{% block student_content %}
+<div class="d-flex justify-content-between align-items-center pb-2 mb-4 border-bottom">
+    <h1 class="h2">My Classes</h1>
+    <a href="{{ url_for('student.join_class') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Join New Class
+    </a>
+</div>
+
+{% if student_classes %}
+<div class="row">
+    {% for class_student in student_classes %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">{{ class_student.teacher_class.name }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <p class="text-muted mb-2">
+                        <i class="bi bi-person-badge"></i>
+                        <strong>Teacher:</strong>
+                        {{ class_student.teacher_class.teacher.full_name or class_student.teacher_class.teacher.center_name }}
+                    </p>
+                    <p class="text-muted mb-2">
+                        <i class="bi bi-people"></i>
+                        <strong>Students:</strong> {{ class_student.teacher_class.students.count() }}
+                    </p>
+                    <p class="text-muted mb-2">
+                        <i class="bi bi-calendar-check"></i>
+                        <strong>Joined:</strong> {{ class_student.joined_at.strftime('%Y-%m-%d') }}
+                    </p>
+                </div>
+
+                {% if class_student.teacher_class.description %}
+                <p class="small">{{ class_student.teacher_class.description }}</p>
+                {% endif %}
+
+                <hr>
+
+                <!-- Assignments for this class -->
+                {% set class_assignments = class_student.teacher_class.assignments %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Assignments</h6>
+                    <span class="badge bg-secondary">{{ class_assignments|length }}</span>
+                </div>
+
+                {% if class_assignments %}
+                <ul class="list-group list-group-flush">
+                    {% for assignment in class_assignments[:3] %}
+                    <li class="list-group-item px-0 py-2">
+                        <small>
+                            <strong>{{ assignment.title }}</strong><br>
+                            <span class="text-muted">{{ assignment.content_type|title }}</span>
+                            {% if assignment.due_date %}
+                            <br><span class="text-danger">Due: {{ assignment.due_date.strftime('%m/%d') }}</span>
+                            {% endif %}
+                        </small>
+                    </li>
+                    {% endfor %}
+                    {% if class_assignments|length > 3 %}
+                    <li class="list-group-item px-0 py-2">
+                        <small class="text-muted">+ {{ class_assignments|length - 3 }} more...</small>
+                    </li>
+                    {% endif %}
+                </ul>
+                {% else %}
+                <p class="text-muted small mb-0">No assignments yet</p>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('student.view_class', class_id=class_student.class_id) }}"
+                   class="btn btn-sm btn-primary w-100">
+                    <i class="bi bi-arrow-right-circle"></i> View Class Details
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-inbox display-1 text-muted"></i>
+        <h4 class="mt-3">No Classes Yet</h4>
+        <p class="text-muted">You haven't joined any classes. Ask your teacher for a class code to get started!</p>
+        <a href="{{ url_for('student.join_class') }}" class="btn btn-primary mt-3">
+            <i class="bi bi-plus-circle"></i> Join a Class
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
