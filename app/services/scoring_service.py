@@ -1,13 +1,32 @@
 # app/services/scoring_service.py
 
-from app.services.gemini_service import gemini_service
-from app.services.stt_service import stt_service
 from flask import current_app
 from app import db
 
 class ScoringService:
     """High-level scoring service that orchestrates AI scoring"""
-    
+
+    def __init__(self):
+        # Lazy load services
+        self._gemini = None
+        self._stt = None
+
+    @property
+    def gemini_service(self):
+        """Lazy load Gemini service"""
+        if self._gemini is None:
+            from app.services.gemini_service import get_gemini_service
+            self._gemini = get_gemini_service()
+        return self._gemini
+
+    @property
+    def stt_service(self):
+        """Lazy load STT service"""
+        if self._stt is None:
+            from app.services.stt_service import get_stt_service
+            self._stt = get_stt_service()
+        return self._stt
+
     def score_writing(self, submission, task):
         """
         Score writing submission
@@ -19,13 +38,13 @@ class ScoringService:
             
             # Call Gemini API
             if is_task_1:
-                scores, cost = gemini_service.score_writing_task_1(
+                scores, cost = self.gemini_service.score_writing_task_1(
                     essay=submission.essay_text,
                     question=task.question_text,
                     chart_type=task.chart_type
                 )
             else:
-                scores, cost = gemini_service.score_writing_task_2(
+                scores, cost = self.gemini_service.score_writing_task_2(
                     essay=submission.essay_text,
                     question=task.question_text
                 )
@@ -63,7 +82,7 @@ class ScoringService:
             # Step 1: Transcribe audio
             audio_path = f"app/static/uploads/{submission.audio_url}"
             
-            transcript, confidence, stt_cost = stt_service.transcribe_audio(audio_path)
+            transcript, confidence, stt_cost = self.stt_service.transcribe_audio(audio_path)
             
             if not transcript:
                 raise Exception("Failed to transcribe audio. Please try again.")
@@ -74,7 +93,7 @@ class ScoringService:
             # Step 2: Score with Gemini
             topic_text = self._get_speaking_topic_text(topic, submission.part)
             
-            scores, gemini_cost = gemini_service.score_speaking(
+            scores, gemini_cost = self.gemini_service.score_speaking(
                 transcript=transcript,
                 topic=topic_text,
                 part=submission.part,
@@ -190,5 +209,16 @@ class ScoringService:
         return attempt.band_score, question_results
 
 
-# Global instance
-scoring_service = ScoringService()
+# Lazy initialization
+_scoring_service = None
+
+def get_scoring_service():
+    """Get or create Scoring service instance"""
+    global _scoring_service
+    if _scoring_service is None:
+        _scoring_service = ScoringService()
+    return _scoring_service
+
+# For backward compatibility
+def scoring_service():
+    return get_scoring_service()

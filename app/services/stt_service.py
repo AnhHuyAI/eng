@@ -107,6 +107,17 @@ class WhisperSTTService:
             raise Exception(f"Speech-to-Text error: {str(e)}")
 
 
-# Choose which service to use
-# stt_service = SpeechToTextService()  # Google
-stt_service = WhisperSTTService()  # OpenAI Whisper (recommended for cost)
+# Lazy initialization
+_stt_service = None
+
+def get_stt_service():
+    """Get or create STT service instance"""
+    global _stt_service
+    if _stt_service is None:
+        _stt_service = WhisperSTTService()  # OpenAI Whisper (recommended for cost)
+        # Alternative: _stt_service = SpeechToTextService()  # Google
+    return _stt_service
+
+# For backward compatibility
+def stt_service():
+    return get_stt_service()

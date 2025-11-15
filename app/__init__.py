@@ -33,7 +33,7 @@ def create_app(config_name='default'):
     from app.routes import auth, user as user_routes, vocabulary as vocab_routes
     from app.routes import listening as listen_routes, reading as read_routes
     from app.routes import speaking as speak_routes, writing as write_routes
-    from app.routes import payment as pay_routes, admin
+    from app.routes import payment as pay_routes, admin, teacher
     
     app.register_blueprint(auth.bp)
     app.register_blueprint(user_routes.bp)
@@ -44,6 +44,7 @@ def create_app(config_name='default'):
     app.register_blueprint(write_routes.bp)
     app.register_blueprint(pay_routes.bp)
     app.register_blueprint(admin.bp)
+    app.register_blueprint(teacher.bp)
     
     # Error handlers
     @app.errorhandler(404)
