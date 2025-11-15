@@ -6,32 +6,39 @@ from app import db
 class ReadingPassage(db.Model):
     """Reading passage"""
     __tablename__ = 'reading_passages'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    
+
+    # Ownership
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'),
+                          nullable=False, index=True)
+    is_public = db.Column(db.Boolean, default=False, nullable=False, index=True)
+
     title = db.Column(db.String(200), nullable=False)
     passage_text = db.Column(db.Text, nullable=False)  # Full passage
-    
+
     topic = db.Column(db.String(100), index=True)
     difficulty = db.Column(db.String(20), default='medium')
     word_count = db.Column(db.Integer)
     reading_time = db.Column(db.Integer)  # Estimated minutes
-    
+
     source = db.Column(db.String(200))
-    
+
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     deleted_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
+    creator = db.relationship('User', foreign_keys=[created_by], backref='created_reading_passages')
     questions = db.relationship('ReadingQuestion', backref='passage', lazy='dynamic',
                                cascade='all, delete-orphan', order_by='ReadingQuestion.question_number')
     attempts = db.relationship('ReadingAttempt', backref='passage', lazy='dynamic',
                               cascade='all, delete-orphan')
-    
+
     def question_count(self):
         return self.questions.count()
-    
+
     def __repr__(self):
         return f'<ReadingPassage {self.title}>'
 
@@ -71,25 +78,31 @@ class ReadingQuestion(db.Model):
 class ReadingAttempt(db.Model):
     """User's reading attempt"""
     __tablename__ = 'reading_attempts'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'),
                        nullable=False, index=True)
     passage_id = db.Column(db.Integer, db.ForeignKey('reading_passages.id', ondelete='CASCADE'),
                           nullable=False, index=True)
-    
+
+    # Optional: Assignment reference
+    assignment_id = db.Column(db.Integer, db.ForeignKey('assignments.id', ondelete='SET NULL'), index=True)
+
     # Results
     score = db.Column(db.Float)
     band_score = db.Column(db.Float)
     correct_answers = db.Column(db.Integer)
     total_questions = db.Column(db.Integer)
-    
+
     # User answers
     answers = db.Column(db.JSON, nullable=False)
     question_results = db.Column(db.JSON)
-    
+
     time_taken = db.Column(db.Integer)
     completed_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+    # Relationships
+    assignment = db.relationship('Assignment', backref='reading_attempts')
     
     def calculate_band_score(self):
         """Convert raw score to IELTS band score (Academic)"""

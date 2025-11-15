@@ -1,13 +1,16 @@
 # app/services/__init__.py
 
-from app.services.gemini_service import gemini_service
-from app.services.stt_service import stt_service
-from app.services.scoring_service import scoring_service
-from app.services.email_service import email_service
+# Services are lazily initialized to avoid app context issues
+# Import service factory functions instead of instances
+
+from app.services.gemini_service import get_gemini_service
+from app.services.stt_service import get_stt_service
+from app.services.scoring_service import get_scoring_service
+from app.services.email_service import get_email_service
 
 __all__ = [
-    'gemini_service',
-    'stt_service',
-    'scoring_service',
-    'email_service'
+    'get_gemini_service',
+    'get_stt_service',
+    'get_scoring_service',
+    'get_email_service'
 ]

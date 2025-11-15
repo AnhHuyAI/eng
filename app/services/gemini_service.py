@@ -353,5 +353,16 @@ DO NOT include any text outside the JSON.
             raise Exception("Failed to parse AI response.")
 
 
-# Global instance
-gemini_service = GeminiService()
+# Lazy initialization - create instance only when needed
+_gemini_service = None
+
+def get_gemini_service():
+    """Get or create Gemini service instance"""
+    global _gemini_service
+    if _gemini_service is None:
+        _gemini_service = GeminiService()
+    return _gemini_service
+
+# For backward compatibility
+def gemini_service():
+    return get_gemini_service()

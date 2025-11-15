@@ -6,38 +6,47 @@ from app import db
 class WritingTask(db.Model):
     """Writing task (Task 1 or Task 2)"""
     __tablename__ = 'writing_tasks'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    
+
+    # Ownership - created by admin or teacher
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'),
+                          nullable=False, index=True)
+    is_public = db.Column(db.Boolean, default=False, nullable=False, index=True)
+    # is_public=True: Admin content (visible to all teachers)
+    # is_public=False: Teacher's private content
+
     task_type = db.Column(db.Integer, nullable=False, index=True)  # 1 or 2
-    
+
     # Task 1 specific
     chart_type = db.Column(db.String(50))  # line_graph, bar_chart, pie_chart, table, map, process
     chart_image_url = db.Column(db.String(500))
-    
+
     # Question
     question_text = db.Column(db.Text, nullable=False)
     instructions = db.Column(db.Text)
-    
+
     # Task 2 specific
     topic = db.Column(db.String(100), index=True)
     essay_type = db.Column(db.String(50))  # opinion, discussion, advantage_disadvantage, problem_solution
-    
+
     difficulty = db.Column(db.String(20), default='medium')
-    
+
     # Sample answers
     sample_answer_band_6 = db.Column(db.Text)
     sample_answer_band_7 = db.Column(db.Text)
     sample_answer_band_9 = db.Column(db.Text)
-    
+
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     deleted_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
+    creator = db.relationship('User', foreign_keys=[created_by], backref='created_writing_tasks')
     submissions = db.relationship('WritingSubmission', backref='task', lazy='dynamic',
                                  cascade='all, delete-orphan')
-    
+
     def __repr__(self):
         return f'<WritingTask Task {self.task_type}: {self.topic or self.chart_type}>'
 
@@ -45,15 +54,19 @@ class WritingTask(db.Model):
 class WritingSubmission(db.Model):
     """User's writing submission"""
     __tablename__ = 'writing_submissions'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'),
                        nullable=False, index=True)
     task_id = db.Column(db.Integer, db.ForeignKey('writing_tasks.id', ondelete='CASCADE'),
                        nullable=False, index=True)
-    
+
+    # Optional: Assignment reference (if submitted as part of class assignment)
+    assignment_id = db.Column(db.Integer, db.ForeignKey('assignments.id', ondelete='SET NULL'), index=True)
+
     essay_text = db.Column(db.Text, nullable=False)
     word_count = db.Column(db.Integer)
+    time_spent_seconds = db.Column(db.Integer)  # How long student spent writing
     
     # AI Scores
     overall_band = db.Column(db.Float, index=True)
@@ -79,11 +92,22 @@ class WritingSubmission(db.Model):
     #   // ... similar for other criteria
     # }
     
+    # Teacher feedback (optional)
+    teacher_comment = db.Column(db.Text)
+    teacher_score = db.Column(db.Float)  # If teacher wants to override AI score
+
     # Cost tracking
     credits_used = db.Column(db.Integer, default=1)
     api_cost_usd = db.Column(db.Float)
-    
+
+    # Status
+    status = db.Column(db.String(20), default='graded', nullable=False)  # 'pending', 'grading', 'graded'
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
-    
+    graded_at = db.Column(db.DateTime)
+
+    # Relationships
+    assignment = db.relationship('Assignment', backref='writing_submissions')
+
     def __repr__(self):
         return f'<WritingSubmission user={self.user_id} band={self.overall_band}>'

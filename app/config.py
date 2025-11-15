@@ -60,28 +60,38 @@ class Config:
     SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
     MAIL_DEFAULT_SENDER = 'noreply@ieltsplatform.com'
     
-    # Payment
+    # Payment - B2B Packages for Teachers
     PAYMENT_PACKAGES = {
         'starter': {
-            'name': 'Gói Starter',
-            'price': 50000,
-            'credits': 50,
-            'description': '50 lượt chấm bài'
+            'name': 'Starter Package',
+            'price_usd': 50,
+            'price_vnd': 1200000,  # ~50 USD
+            'credits': 500,
+            'description': '500 credits - Perfect for small centers (~250 writing tests)',
+            'recommended_for': '20-30 students'
         },
-        'basic': {
-            'name': 'Gói Basic',
-            'price': 99000,
-            'credits': 110,
-            'description': '110 lượt chấm bài (Tặng 10%)',
+        'pro': {
+            'name': 'Pro Package',
+            'price_usd': 100,
+            'price_vnd': 2400000,  # ~100 USD
+            'credits': 1100,
+            'description': '1100 credits - 10% bonus (save 100 credits)',
+            'recommended_for': '50-100 students',
             'popular': True
         },
-        'premium': {
-            'name': 'Gói Premium',
-            'price': 199000,
-            'credits': 250,
-            'description': '250 lượt chấm bài (Tặng 25%)'
+        'enterprise': {
+            'name': 'Enterprise Package',
+            'price_usd': 200,
+            'price_vnd': 4800000,  # ~200 USD
+            'credits': 2400,
+            'description': '2400 credits - 20% bonus (save 400 credits)',
+            'recommended_for': '100+ students',
+            'best_value': True
         }
     }
+
+    # Trial credits for new teachers
+    TEACHER_TRIAL_CREDITS = 50  # Free credits for new teachers to test platform
     
     BANK_INFO = {
         'bank_name': 'Techcombank',
